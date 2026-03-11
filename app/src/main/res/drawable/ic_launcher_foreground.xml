@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Falling white cube -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,30h10v10h-10z" />
+
+    <!-- Falling red cube -->
+    <path
+        android:fillColor="#E53935"
+        android:pathData="M58,42h10v10h-10z" />
+
+    <!-- Falling green cube -->
+    <path
+        android:fillColor="#43A047"
+        android:pathData="M34,52h10v10h-10z" />
+
+    <!-- Platform -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,72h36v5h-36z" />
+</vector>

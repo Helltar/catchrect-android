@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">CatchRect</string>
+    <string name="submit_score_title">Submit Score: %1$d</string>
+    <string name="nickname_hint">Nickname</string>
+    <string name="submit">Submit</string>
+    <string name="cancel">Cancel</string>
+    <string name="name_length_error">Name must be 1–32 characters</string>
+    <string name="submission_failed_title">Submission Failed</string>
+    <string name="submission_failed_message">Could not submit your score. Please try again later.</string>
+    <string name="submitting_score">Submitting score…</string>
+    <string name="score_submitted_title">Score Submitted</string>
+    <string name="score_submitted_message">Your record was submitted successfully.</string>
+    <string name="loading_leaderboard">Loading leaderboard…</string>
+    <string name="failed_with_reason">Failed: %1$s</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="no_scores_yet">No scores yet</string>
+    <string name="leaderboard_title">Leaderboard</string>
+    <string name="leaderboard_button">Leaderboard</string>
+    <string name="leaderboard_empty_subtitle">Catch the first score</string>
+    <plurals name="leaderboard_best_runs">
+        <item quantity="one">%d best run</item>
+        <item quantity="other">%d best runs</item>
+    </plurals>
+    <string name="ok">OK</string>
+    <string name="about">About</string>
+    <string name="about_title">About</string>
+    <string name="website_label">helltar.com</string>
+    <string name="github_label">Source code on GitHub</string>
+    <string name="play">Play</string>
+    <string name="game_hud_score">⭐ %1$d</string>
+    <string name="game_hud_lives">❤️ %1$d</string>
+    <string name="game_over_title">Game Over</string>
+    <string name="final_score">Final score: %1$d</string>
+    <string name="restart">Restart</string>
+    <string name="submit_score_button">Submit Score</string>
+
+    <string name="player_id_label">ID: %1$s</string>
+    <string name="player_id_copied">Player ID copied</string>
+    <string name="sound_on">Sound: ON</string>
+    <string name="sound_off">Sound: OFF</string>
+    <string name="pure_black_on">Pure Black: ON</string>
+    <string name="pure_black_off">Pure Black: OFF</string>
+</resources>

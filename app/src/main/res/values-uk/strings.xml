@@ -1,0 +1,45 @@
+<resources>
+    <string name="app_name">CatchRect</string>
+    <string name="submit_score_title">Надіслати рекорд: %1$d</string>
+    <string name="nickname_hint">Нікнейм</string>
+    <string name="submit">Надіслати</string>
+    <string name="cancel">Скасувати</string>
+    <string name="name_length_error">Імʼя має містити від 1 до 32 символів</string>
+    <string name="submission_failed_title">Надсилання не вдалося</string>
+    <string name="submission_failed_message">Не вдалося надіслати ваш рекорд. Спробуйте пізніше.</string>
+    <string name="submitting_score">Надсилаємо рекорд…</string>
+    <string name="score_submitted_title">Рекорд надіслано</string>
+    <string name="score_submitted_message">Ваш рекорд успішно надіслано.</string>
+    <string name="loading_leaderboard">Завантажуємо таблицю рекордів…</string>
+    <string name="failed_with_reason">Помилка: %1$s</string>
+    <string name="unknown_error">Невідома помилка</string>
+    <string name="no_scores_yet">Ще немає рекордів</string>
+    <string name="leaderboard_title">Таблиця рекордів</string>
+    <string name="leaderboard_button">Рекорди</string>
+    <string name="leaderboard_empty_subtitle">Станьте першим у таблиці</string>
+    <plurals name="leaderboard_best_runs">
+        <item quantity="one">%d найкращий забіг</item>
+        <item quantity="few">%d найкращі забіги</item>
+        <item quantity="many">%d найкращих забігів</item>
+        <item quantity="other">%d найкращого забігу</item>
+    </plurals>
+    <string name="ok">OK</string>
+    <string name="about">Про гру</string>
+    <string name="about_title">Про гру</string>
+    <string name="website_label">helltar.com</string>
+    <string name="github_label">Вихідний код на GitHub</string>
+    <string name="play">Грати</string>
+    <string name="game_hud_score">⭐ %1$d</string>
+    <string name="game_hud_lives">❤️ %1$d</string>
+    <string name="game_over_title">Гру закінчено</string>
+    <string name="final_score">Фінальний рахунок: %1$d</string>
+    <string name="restart">Ще раз</string>
+    <string name="submit_score_button">Надіслати</string>
+
+    <string name="player_id_label">ID: %1$s</string>
+    <string name="player_id_copied">ID гравця скопійовано</string>
+    <string name="sound_on">Звук: ВКЛ</string>
+    <string name="sound_off">Звук: ВИКЛ</string>
+    <string name="pure_black_on">Чорний: ВКЛ</string>
+    <string name="pure_black_off">Чорний: ВИКЛ</string>
+</resources>
