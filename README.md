@@ -2,7 +2,9 @@
 
 A minimalist Android arcade game where your reflexes are the only thing standing between a high score and game over.
 
-⏳ *Status: Currently under review on Google Play. Link coming soon!*
+<a href="https://play.google.com/store/apps/details?id=com.helltar.catchrect">
+  <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" width="200">
+</a>
 
 ## 📱 Gameplay
 
