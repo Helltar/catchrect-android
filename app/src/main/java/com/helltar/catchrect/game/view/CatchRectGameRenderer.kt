@@ -483,9 +483,9 @@ class CatchRectGameRenderer(context: Context) {
     private fun drawRunStats(canvas: Canvas, engine: CatchRectGameEngine, centerX: Float, topY: Float): Float {
         val rows = listOf(
             resources.getString(R.string.stat_label_time) to formatDuration(engine.survivalSeconds),
-            resources.getString(R.string.stat_label_best_combo) to "×${engine.bestCombo}",
             resources.getString(R.string.stat_label_caught) to "${engine.caughtWhiteCount}",
-            resources.getString(R.string.stat_label_powerups) to "${engine.powerUpsUsed}",
+            resources.getString(R.string.stat_label_best_combo) to "${engine.bestCombo}",
+            resources.getString(R.string.stat_label_lives_gained) to "${engine.livesGainedCount}",
             resources.getString(R.string.stat_label_blocks) to "${engine.blockedHitCount}"
         )
 

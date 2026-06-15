@@ -36,6 +36,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
     var powerUpsUsed: Int = 0
         private set
 
+    var livesGainedCount: Int = 0
+        private set
+
     private var slowMotionTicksRemaining: Int = 0
     private var platformSlowTicksRemaining: Int = 0
     private var shieldTicksRemaining: Int = 0
@@ -233,7 +236,10 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
                         }
                     }
 
-                    CubeType.GREEN -> lives += 1
+                    CubeType.GREEN -> {
+                        lives += 1
+                        livesGainedCount += 1
+                    }
                     CubeType.SHIELD -> {
                         shieldTicksRemaining = shieldDurationTicks()
                         powerUpsUsed += 1
@@ -309,6 +315,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         caughtWhiteCount = 0
         blockedHitCount = 0
         powerUpsUsed = 0
+        livesGainedCount = 0
         slowMotionTicksRemaining = 0
         platformSlowTicksRemaining = 0
         shieldTicksRemaining = 0

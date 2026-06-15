@@ -34,7 +34,7 @@
     <string name="stat_label_time">Час</string>
     <string name="stat_label_best_combo">Найкраще комбо</string>
     <string name="stat_label_caught">Білих спіймано</string>
-    <string name="stat_label_powerups">Бонуси</string>
+    <string name="stat_label_lives_gained">Піднято життів</string>
     <string name="stat_label_blocks">Блоків щитом</string>
     <string name="restart">Ще раз</string>
     <string name="submit_score_button">Надіслати</string>

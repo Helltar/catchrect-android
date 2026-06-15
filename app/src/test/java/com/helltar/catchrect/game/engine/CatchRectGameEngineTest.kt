@@ -136,6 +136,7 @@ class CatchRectGameEngineTest {
         assertEquals(3, engine.lives)
         assertEquals(0, engine.combo)
         assertEquals(0, engine.blockedHitCount)
+        assertEquals(0, engine.livesGainedCount)
         assertFalse(engine.isShieldActive)
         assertFalse(engine.isSlowMotionActive)
         assertFalse(engine.isPlatformSlowActive)

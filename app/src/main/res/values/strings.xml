@@ -32,7 +32,7 @@
     <string name="stat_label_time">Time</string>
     <string name="stat_label_best_combo">Best combo</string>
     <string name="stat_label_caught">Whites caught</string>
-    <string name="stat_label_powerups">Power-ups</string>
+    <string name="stat_label_lives_gained">Lives gained</string>
     <string name="stat_label_blocks">Shield blocks</string>
     <string name="restart">Restart</string>
     <string name="submit_score_button">Submit Score</string>
