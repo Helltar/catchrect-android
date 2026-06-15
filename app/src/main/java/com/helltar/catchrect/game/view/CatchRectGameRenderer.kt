@@ -145,7 +145,7 @@ class CatchRectGameRenderer(context: Context) {
     fun onCubeCaught(type: CubeType, x: Float, y: Float) {
         val baseColor = cubeColor(type)
         val count = when (type) {
-            CubeType.RED_FAST, CubeType.SHIELD, CubeType.SLOW_MOTION, CubeType.PLATFORM_SLOW -> 18
+            CubeType.RED_FAST, CubeType.SHIELD, CubeType.SLOW_MOTION -> 18
             else -> 14
         }
         repeat(count) {
@@ -167,7 +167,7 @@ class CatchRectGameRenderer(context: Context) {
             CubeType.GREEN -> triggerFlash(Color.rgb(67, 160, 71), 0.4f)
             CubeType.SHIELD -> triggerFlash(Color.rgb(38, 198, 218), 0.38f)
             CubeType.SLOW_MOTION -> triggerFlash(Color.rgb(171, 71, 188), 0.34f)
-            CubeType.PLATFORM_SLOW -> triggerFlash(Color.rgb(255, 193, 7), 0.38f)
+            CubeType.PLATFORM_SLOW -> triggerFlash(Color.rgb(245, 124, 0), 0.42f)
             CubeType.WHITE -> scorePulse = 1f
         }
     }
@@ -303,7 +303,7 @@ class CatchRectGameRenderer(context: Context) {
         platformGlowPaint.color = if (engine.isShieldActive) {
             Color.argb(120, 38, 198, 218)
         } else if (engine.isPlatformSlowActive) {
-            Color.argb(115, 255, 193, 7)
+            Color.argb(115, 245, 124, 0)
         } else {
             Color.argb(70, 120, 170, 255)
         }
@@ -515,7 +515,7 @@ class CatchRectGameRenderer(context: Context) {
             pills += StatusPill(
                 icon = StatusIcon.PLATFORM_SLOW,
                 text = "${ceil(engine.platformSlowSecondsRemaining).toInt()}s",
-                color = Color.rgb(255, 193, 7)
+                color = Color.rgb(245, 124, 0)
             )
         }
         if (pills.isEmpty()) return
@@ -657,7 +657,7 @@ class CatchRectGameRenderer(context: Context) {
         CubeType.GREEN -> Color.rgb(67, 160, 71)
         CubeType.SHIELD -> Color.rgb(38, 198, 218)
         CubeType.SLOW_MOTION -> Color.rgb(171, 71, 188)
-        CubeType.PLATFORM_SLOW -> Color.rgb(255, 193, 7)
+        CubeType.PLATFORM_SLOW -> Color.rgb(245, 124, 0)
     }
 
     private fun withAlpha(color: Int, alpha: Int): Int =
