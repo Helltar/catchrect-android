@@ -51,6 +51,7 @@ class CatchRectGameRenderer(context: Context) {
     private val heartPath = buildHeartPath()
     private val shieldPath = buildShieldPath()
     private val statusPillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val statusPillStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val statusTextPaint =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
@@ -551,9 +552,12 @@ class CatchRectGameRenderer(context: Context) {
     private fun drawStatusHud(canvas: Canvas, engine: CatchRectGameEngine, centerY: Float) {
         val pills = ArrayList<StatusPill>(4)
         if (engine.combo > 1) {
+            // Below the first tier the multiplier is just x1 (no bonus), so show the
+            // streak as it builds; once a real multiplier kicks in, lead with it.
+            val multiplier = engine.comboMultiplier
             pills += StatusPill(
                 icon = StatusIcon.COMBO,
-                text = "x${engine.comboMultiplier} ${engine.combo}",
+                text = if (multiplier > 1) "×$multiplier" else "${engine.combo}",
                 color = Color.rgb(41, 98, 255)
             )
         }
@@ -575,14 +579,16 @@ class CatchRectGameRenderer(context: Context) {
             pills += StatusPill(
                 icon = StatusIcon.PLATFORM_SLOW,
                 text = "${ceil(engine.platformSlowSecondsRemaining).toInt()}s",
-                color = Color.rgb(245, 124, 0)
+                color = Color.rgb(245, 124, 0),
+                alert = true
             )
         }
         if (engine.isControlInvertActive) {
             pills += StatusPill(
                 icon = StatusIcon.INVERT_CONTROL,
                 text = "${ceil(engine.controlInvertSecondsRemaining).toInt()}s",
-                color = Color.rgb(233, 30, 99)
+                color = Color.rgb(233, 30, 99),
+                alert = true
             )
         }
         if (pills.isEmpty()) return
@@ -599,12 +605,27 @@ class CatchRectGameRenderer(context: Context) {
         var left = (engine.viewportWidth - totalWidth) / 2f
         val baseline = centerY - (statusTextPaint.descent() + statusTextPaint.ascent()) / 2f
 
+        // 0..1 triangle-ish wave for the alert pulse on debuff pills.
+        val pulse = 0.5f + 0.5f * sin(elapsedSeconds * 6.5f)
+
         for (i in pills.indices) {
             val pill = pills[i]
             val width = widths[i]
             tmpRect.set(left, centerY - height / 2f, left + width, centerY + height / 2f)
-            statusPillPaint.color = withAlpha(pill.color, 74)
-            canvas.drawRoundRect(tmpRect, height / 2f, height / 2f, statusPillPaint)
+            val radius = height / 2f
+
+            val fillAlpha = if (pill.alert) (70 + pulse * 80f).toInt() else 74
+            statusPillPaint.color = withAlpha(pill.color, fillAlpha)
+            canvas.drawRoundRect(tmpRect, radius, radius, statusPillPaint)
+
+            if (pill.alert) {
+                // Pulsing glow border so a debuff reads as "wait it out", not a reward.
+                statusPillStrokePaint.color = withAlpha(pill.color, (120 + pulse * 135f).toInt())
+                statusPillStrokePaint.strokeWidth = dp(1.5f)
+                val inset = statusPillStrokePaint.strokeWidth / 2f
+                tmpRect.inset(inset, inset)
+                canvas.drawRoundRect(tmpRect, radius - inset, radius - inset, statusPillStrokePaint)
+            }
 
             val iconCenterX = left + horizontalPad + iconSize / 2f
             drawStatusIcon(canvas, pill.icon, iconCenterX, centerY, iconSize, Color.WHITE)
@@ -799,7 +820,8 @@ class CatchRectGameRenderer(context: Context) {
     private class StatusPill(
         val icon: StatusIcon,
         val text: String,
-        val color: Int
+        val color: Int,
+        val alert: Boolean = false
     )
 
     private enum class StatusIcon {
