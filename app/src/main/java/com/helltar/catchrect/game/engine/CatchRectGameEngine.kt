@@ -9,7 +9,7 @@ import kotlin.random.Random
 class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: Long = SecureRandom().nextLong()) {
 
     private val fallingCubes = mutableListOf<FallingCube>()
-    private val caughtCubeEvents = mutableListOf<CubeType>()
+    private val caughtCubeEvents = mutableListOf<CaughtCubeEvent>()
 
     private val replayInputs = mutableListOf<ReplayInput>()
     private var tickCount = 0
@@ -124,7 +124,11 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
                     cube.y <= pBottom
 
             if (isCaught) {
-                caughtCubeEvents += cube.type
+                caughtCubeEvents += CaughtCubeEvent(
+                    type = cube.type,
+                    x = cube.x + cube.size / 2f,
+                    y = pTop
+                )
                 when (cube.type) {
                     CubeType.WHITE -> score += 1
                     CubeType.RED, CubeType.RED_FAST -> lives -= 1
@@ -152,10 +156,11 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         }
     }
 
-    fun drainCaughtCubeEvents(action: (CubeType) -> Unit) {
+    fun drainCaughtCubeEvents(action: (type: CubeType, x: Float, y: Float) -> Unit) {
         if (caughtCubeEvents.isEmpty()) return
         for (i in caughtCubeEvents.indices) {
-            action(caughtCubeEvents[i])
+            val event = caughtCubeEvents[i]
+            action(event.type, event.x, event.y)
         }
         caughtCubeEvents.clear()
     }
@@ -244,4 +249,6 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         seed = SecureRandom().nextLong()
         random = Random(seed)
     }
+
+    private class CaughtCubeEvent(val type: CubeType, val x: Float, val y: Float)
 }

@@ -212,11 +212,9 @@ class CatchRectSurfaceView(context: Context) : SurfaceView(context), SurfaceHold
 
             engine.update()
             musicPlayer.score = engine.score
-            val catchX = (engine.platformLeft + engine.platformRight) / 2f
-            val catchY = engine.platformTop
-            engine.drainCaughtCubeEvents { type ->
+            engine.drainCaughtCubeEvents { type, x, y ->
                 soundPlayer.playCubeCatch(type)
-                renderer.onCubeCaught(type, catchX, catchY)
+                renderer.onCubeCaught(type, x, y)
             }
             renderer.update(engine, dt)
 
