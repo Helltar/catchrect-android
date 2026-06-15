@@ -199,11 +199,16 @@ class CatchRectSurfaceView(context: Context) : SurfaceView(context), SurfaceHold
                 musicPlayer.start()
             }
 
+            // While control is inverted, mirror the touch target around the screen
+            // centre and flip the key direction, so left feels like right.
+            val invert = engine.isControlInvertActive
+
             val touchX = pendingTouchX
             if (!touchX.isNaN()) {
+                val effectiveTouchX = if (invert) engine.viewportWidth - touchX else touchX
                 if (engine.isPlatformSlowActive) {
                     val reached = engine.movePlatformTowardCenter(
-                        centerX = touchX,
+                        centerX = effectiveTouchX,
                         maxDeltaX = KEYBOARD_SPEED_PX_PER_SEC * engine.platformMovementFactor * dt
                     )
                     if (reached) {
@@ -211,11 +216,11 @@ class CatchRectSurfaceView(context: Context) : SurfaceView(context), SurfaceHold
                     }
                 } else {
                     pendingTouchX = Float.NaN
-                    engine.movePlatformByCenter(touchX)
+                    engine.movePlatformByCenter(effectiveTouchX)
                 }
             }
 
-            val dir = keyDirection
+            val dir = if (invert) -keyDirection else keyDirection
             if (dir != 0) {
                 engine.movePlatformBy(dir * KEYBOARD_SPEED_PX_PER_SEC * engine.platformMovementFactor * dt)
             }

@@ -168,6 +168,7 @@ class CatchRectGameRenderer(context: Context) {
             CubeType.SHIELD -> triggerFlash(Color.rgb(38, 198, 218), 0.38f)
             CubeType.SLOW_MOTION -> triggerFlash(Color.rgb(171, 71, 188), 0.34f)
             CubeType.PLATFORM_SLOW -> triggerFlash(Color.rgb(245, 124, 0), 0.42f)
+            CubeType.INVERT_CONTROL -> triggerFlash(Color.rgb(233, 30, 99), 0.42f)
             CubeType.WHITE -> scorePulse = 1f
         }
     }
@@ -304,6 +305,8 @@ class CatchRectGameRenderer(context: Context) {
             Color.argb(120, 38, 198, 218)
         } else if (engine.isPlatformSlowActive) {
             Color.argb(115, 245, 124, 0)
+        } else if (engine.isControlInvertActive) {
+            Color.argb(120, 233, 30, 99)
         } else {
             Color.argb(70, 120, 170, 255)
         }
@@ -518,6 +521,13 @@ class CatchRectGameRenderer(context: Context) {
                 color = Color.rgb(245, 124, 0)
             )
         }
+        if (engine.isControlInvertActive) {
+            pills += StatusPill(
+                icon = StatusIcon.INVERT_CONTROL,
+                text = "${ceil(engine.controlInvertSecondsRemaining).toInt()}s",
+                color = Color.rgb(233, 30, 99)
+            )
+        }
         if (pills.isEmpty()) return
 
         val height = dp(28f)
@@ -573,6 +583,7 @@ class CatchRectGameRenderer(context: Context) {
             CubeType.SHIELD -> drawShieldIcon(canvas, left + size / 2f, top + size / 2f, size * 0.52f, Color.WHITE)
             CubeType.SLOW_MOTION -> drawSlowMotionIcon(canvas, left + size / 2f, top + size / 2f, size * 0.5f, Color.WHITE)
             CubeType.PLATFORM_SLOW -> drawPlatformSlowIcon(canvas, left + size / 2f, top + size / 2f, size * 0.56f, Color.WHITE)
+            CubeType.INVERT_CONTROL -> drawInvertControlIcon(canvas, left + size / 2f, top + size / 2f, size * 0.56f, Color.WHITE)
             else -> Unit
         }
     }
@@ -583,6 +594,7 @@ class CatchRectGameRenderer(context: Context) {
             StatusIcon.SHIELD -> drawShieldIcon(canvas, cx, cy, size, color)
             StatusIcon.SLOW_MOTION -> drawSlowMotionIcon(canvas, cx, cy, size, color)
             StatusIcon.PLATFORM_SLOW -> drawPlatformSlowIcon(canvas, cx, cy, size, color)
+            StatusIcon.INVERT_CONTROL -> drawInvertControlIcon(canvas, cx, cy, size, color)
         }
     }
 
@@ -633,6 +645,27 @@ class CatchRectGameRenderer(context: Context) {
         statusIconPaint.style = Paint.Style.FILL
     }
 
+    /** Two opposing horizontal arrows — the "controls swapped" glyph. */
+    private fun drawInvertControlIcon(canvas: Canvas, cx: Float, cy: Float, size: Float, color: Int) {
+        val half = size / 2f
+        statusIconPaint.color = withAlpha(color, 225)
+        statusIconPaint.style = Paint.Style.STROKE
+        statusIconPaint.strokeWidth = size * 0.11f
+        val len = half * 0.62f
+        val head = half * 0.26f
+        val topY = cy - half * 0.3f
+        val botY = cy + half * 0.3f
+        // top arrow points right
+        canvas.drawLine(cx - len, topY, cx + len, topY, statusIconPaint)
+        canvas.drawLine(cx + len, topY, cx + len - head, topY - head, statusIconPaint)
+        canvas.drawLine(cx + len, topY, cx + len - head, topY + head, statusIconPaint)
+        // bottom arrow points left
+        canvas.drawLine(cx - len, botY, cx + len, botY, statusIconPaint)
+        canvas.drawLine(cx - len, botY, cx - len + head, botY - head, statusIconPaint)
+        canvas.drawLine(cx - len, botY, cx - len + head, botY + head, statusIconPaint)
+        statusIconPaint.style = Paint.Style.FILL
+    }
+
     /** Heart shape in a unit [0,1] box, centred so scaling around (0.5, 0.5) keeps it balanced. */
     private fun buildHeartPath(): Path = Path().apply {
         moveTo(0.5f, 0.92f)
@@ -658,6 +691,7 @@ class CatchRectGameRenderer(context: Context) {
         CubeType.SHIELD -> Color.rgb(38, 198, 218)
         CubeType.SLOW_MOTION -> Color.rgb(171, 71, 188)
         CubeType.PLATFORM_SLOW -> Color.rgb(245, 124, 0)
+        CubeType.INVERT_CONTROL -> Color.rgb(233, 30, 99)
     }
 
     private fun withAlpha(color: Int, alpha: Int): Int =
@@ -715,6 +749,7 @@ class CatchRectGameRenderer(context: Context) {
         COMBO,
         SHIELD,
         SLOW_MOTION,
-        PLATFORM_SLOW
+        PLATFORM_SLOW,
+        INVERT_CONTROL
     }
 }

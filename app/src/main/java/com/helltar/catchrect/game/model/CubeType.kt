@@ -7,5 +7,6 @@ enum class CubeType {
     GREEN,
     SHIELD,
     SLOW_MOTION,
-    PLATFORM_SLOW
+    PLATFORM_SLOW,
+    INVERT_CONTROL
 }

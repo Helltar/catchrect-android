@@ -45,6 +45,12 @@ class GameSoundPlayer {
                     CubeType.PLATFORM_SLOW -> {
                         toneGenerator.startTone(ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE, 170)
                     }
+
+                    CubeType.INVERT_CONTROL -> {
+                        toneGenerator.startTone(ToneGenerator.TONE_CDMA_ABBR_ALERT, 90)
+                        sleep(60)
+                        toneGenerator.startTone(ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE, 160)
+                    }
                 }
             }
         }

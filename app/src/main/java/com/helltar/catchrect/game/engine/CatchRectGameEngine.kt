@@ -39,6 +39,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
     private var slowMotionTicksRemaining: Int = 0
     private var platformSlowTicksRemaining: Int = 0
     private var shieldTicksRemaining: Int = 0
+    private var controlInvertTicksRemaining: Int = 0
 
     val comboMultiplier: Int
         get() = when {
@@ -65,6 +66,12 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
 
     val platformSlowSecondsRemaining: Float
         get() = platformSlowTicksRemaining * CatchRectGameConfig.FIXED_DT
+
+    val isControlInvertActive: Boolean
+        get() = controlInvertTicksRemaining > 0
+
+    val controlInvertSecondsRemaining: Float
+        get() = controlInvertTicksRemaining * CatchRectGameConfig.FIXED_DT
 
     val platformMovementFactor: Float
         get() = if (isPlatformSlowActive) config.platformSlowSpeedFactor else 1f
@@ -168,6 +175,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         if (shieldTicksRemaining > 0) {
             shieldTicksRemaining--
         }
+        if (controlInvertTicksRemaining > 0) {
+            controlInvertTicksRemaining--
+        }
 
         val spawnDelaySeconds = max(
             config.minSpawnDelaySeconds,
@@ -235,6 +245,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
                     }
 
                     CubeType.PLATFORM_SLOW -> platformSlowTicksRemaining = platformSlowDurationTicks()
+                    CubeType.INVERT_CONTROL -> controlInvertTicksRemaining = controlInvertDurationTicks()
                 }
                 continue
             }
@@ -301,6 +312,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         slowMotionTicksRemaining = 0
         platformSlowTicksRemaining = 0
         shieldTicksRemaining = 0
+        controlInvertTicksRemaining = 0
         isGameOver = false
         spawnAccumulatorSeconds = 0f
         reseed()
@@ -333,7 +345,8 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
             chance < whiteChance + redChance + fastRedChance + greenChance -> CubeType.GREEN
             chance < whiteChance + redChance + fastRedChance + greenChance + shieldChance -> CubeType.SHIELD
             chance < whiteChance + redChance + fastRedChance + greenChance + shieldChance + 0.025f -> CubeType.SLOW_MOTION
-            else -> CubeType.PLATFORM_SLOW
+            chance < whiteChance + redChance + fastRedChance + greenChance + shieldChance + 0.025f + 0.02f -> CubeType.PLATFORM_SLOW
+            else -> CubeType.INVERT_CONTROL
         }
 
         val size = if (type == CubeType.RED_FAST) {
@@ -354,6 +367,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
             CubeType.SHIELD -> 0.95f
             CubeType.SLOW_MOTION -> 0.85f
             CubeType.PLATFORM_SLOW -> 1.15f
+            CubeType.INVERT_CONTROL -> 1f
         }
 
         val speed =
@@ -378,6 +392,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
 
     private fun shieldDurationTicks(): Int =
         (config.shieldDurationSeconds / CatchRectGameConfig.FIXED_DT).roundToInt()
+
+    private fun controlInvertDurationTicks(): Int =
+        (config.controlInvertDurationSeconds / CatchRectGameConfig.FIXED_DT).roundToInt()
 
     private fun platformSlowDurationTicks(): Int =
         (config.platformSlowDurationSeconds / CatchRectGameConfig.FIXED_DT).roundToInt()

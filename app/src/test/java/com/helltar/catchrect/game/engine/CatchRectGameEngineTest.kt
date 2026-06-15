@@ -83,6 +83,49 @@ class CatchRectGameEngineTest {
         assertEquals("one red blocked by the timed shield", 1, engine.blockedHitCount)
     }
 
+    /**
+     * Catching an INVERT_CONTROL cube activates a timed window (the SurfaceView
+     * mirrors touch input and flips key direction while it is active). The engine
+     * only owns the timer: it activates for its full configured duration and then
+     * expires on its own.
+     */
+    @Test
+    fun `timed control inversion activates for its full duration then expires`() {
+        val config = CatchRectGameConfig()
+        val engine = CatchRectGameEngine(config, initialSeed = 11L).apply {
+            updateViewport(VIEWPORT_WIDTH, VIEWPORT_HEIGHT)
+            updateSafeInsets(0, 0)
+            movePlatformByCenter(VIEWPORT_WIDTH / 2f)
+        }
+
+        var sawActivation = false
+        var secondsAtActivation = 0f
+        var sawExpiry = false
+        var wasActive = false
+
+        repeat(TOTAL_TICKS) {
+            engine.update()
+            val active = engine.isControlInvertActive
+            if (active && !wasActive) {
+                sawActivation = true
+                secondsAtActivation = engine.controlInvertSecondsRemaining
+            }
+            if (!active && wasActive) {
+                sawExpiry = true
+            }
+            wasActive = active
+        }
+
+        assertTrue("control inversion should activate at least once", sawActivation)
+        assertEquals(
+            "inversion starts at its full configured duration",
+            config.controlInvertDurationSeconds,
+            secondsAtActivation,
+            0.001f
+        )
+        assertTrue("inversion should expire on its own", sawExpiry)
+    }
+
     @Test
     fun `fresh engine and restart both start from a clean state`() {
         val engine = stationaryEngine(11L)
@@ -96,6 +139,7 @@ class CatchRectGameEngineTest {
         assertFalse(engine.isShieldActive)
         assertFalse(engine.isSlowMotionActive)
         assertFalse(engine.isPlatformSlowActive)
+        assertFalse(engine.isControlInvertActive)
         assertFalse(engine.isGameOver)
     }
 
