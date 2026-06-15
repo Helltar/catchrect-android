@@ -8,26 +8,42 @@ A minimalist Android arcade game where your reflexes are the only thing standing
 
 ## 📱 Gameplay
 
-A paddle sits at the bottom of the screen. Squares fall from above — move the paddle and catch the right ones.
+A paddle sits at the bottom of the screen and squares rain down from above. Slide the
+paddle — drag anywhere on screen, or use the arrow keys / `A` · `D` — to catch the good
+squares and dodge the rest. You start with **3 lives**; lose them all and it's game over.
+
+### Catch these
 
 | Square | Effect |
 |--------|--------|
-| ⬜ White | **+1 point** |
-| 🟥 Red | **−1 life** |
+| ⬜ White | **+1 point** — the backbone of your score |
 | 🟩 Green | **+1 life** |
-| 🟦 Shield | **Blocks red hits for a short time** |
-| 🟪 Slow Motion | **Slows falling squares for a short time** |
-| 🟧 Platform Slow | **Slows your paddle for a short time — avoid it** |
-| 🔀 Invert Controls | **Flips left/right for a short time — avoid it** |
+| 🟦 Shield | **Blocks red hits for a few seconds** |
+| 🟪 Slow Motion | **Slows every falling square for a few seconds** |
 
-Catch white squares in a row to build a combo multiplier. Red squares and missed white
-squares reset the combo, while shield and slow motion power-ups can save a run at the
-right moment.
+### Avoid these
 
-The more points you collect, the faster the squares fall. How long can you survive?
+| Square | Effect |
+|--------|--------|
+| 🟥 Red | **−1 life** — and some fall fast |
+| 🟧 Platform Slow | **Your paddle turns sluggish for a few seconds** |
+| 🔀 Invert Controls | **Left becomes right for a few seconds** |
 
-After each run, the game shows your survival time, best combo, caught whites,
-used power-ups, and shield-blocked hits.
+### Combos & difficulty
+
+Catch white squares back-to-back to build a **combo multiplier** — the longer the streak,
+the more each catch is worth:
+
+- **5 in a row → ×2**
+- **10 in a row → ×3**
+- **20 in a row → ×5**
+
+Catching a red square or letting a white one slip past resets the streak to zero. And the
+higher your score climbs, the harder it gets: squares fall faster, spawn more often, and
+your paddle gradually shrinks. How long can you survive?
+
+After each run you get a breakdown — survival time, best combo, whites caught, power-ups
+used, and hits absorbed by your shield.
 
 ## 📖 The Story Behind CatchRect
 
