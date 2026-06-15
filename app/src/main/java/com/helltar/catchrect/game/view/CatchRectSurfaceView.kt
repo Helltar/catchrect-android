@@ -212,7 +212,13 @@ class CatchRectSurfaceView(context: Context) : SurfaceView(context), SurfaceHold
 
             engine.update()
             musicPlayer.score = engine.score
-            engine.drainCaughtCubeEvents(soundPlayer::playCubeCatch)
+            val catchX = (engine.platformLeft + engine.platformRight) / 2f
+            val catchY = engine.platformTop
+            engine.drainCaughtCubeEvents { type ->
+                soundPlayer.playCubeCatch(type)
+                renderer.onCubeCaught(type, catchX, catchY)
+            }
+            renderer.update(engine, dt)
 
             if (engine.isGameOver && !gameOverFired) {
                 gameOverFired = true

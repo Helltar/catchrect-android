@@ -13,7 +13,7 @@ data class CatchRectGameConfig(
     val scorePerSpawnStep: Int = 15,
     val minCubeSizePx: Int = 26,
     val maxCubeSizePxExclusive: Int = 42,
-    val baseCubeSpeedPxPerSecond: Float = 290f,
+    val baseCubeSpeedPxPerSecond: Float = 350f,
     val cubeSpeedPerStep: Float = 32f,
     val scorePerSpeedStep: Int = 15
 ) {
