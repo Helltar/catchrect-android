@@ -22,7 +22,8 @@ data class CatchRectGameConfig(
     val slowMotionDurationSeconds: Float = 5f,
     val slowMotionSpeedFactor: Float = 0.45f,
     val platformSlowDurationSeconds: Float = 4f,
-    val platformSlowSpeedFactor: Float = 0.55f
+    val platformSlowSpeedFactor: Float = 0.55f,
+    val shieldDurationSeconds: Float = 4f
 ) {
     fun basePlatformWidthPx(viewportWidth: Int): Float = clampWidth(viewportWidth) * platformWidthFactor
 

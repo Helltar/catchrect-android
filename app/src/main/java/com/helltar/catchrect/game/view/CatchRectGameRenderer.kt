@@ -300,7 +300,7 @@ class CatchRectGameRenderer(context: Context) {
         val radius = (bottom - top) / 2f
 
         val glowPad = dp(6f)
-        platformGlowPaint.color = if (engine.hasShield) {
+        platformGlowPaint.color = if (engine.isShieldActive) {
             Color.argb(120, 38, 198, 218)
         } else if (engine.isPlatformSlowActive) {
             Color.argb(115, 255, 193, 7)
@@ -497,10 +497,10 @@ class CatchRectGameRenderer(context: Context) {
                 color = Color.rgb(41, 98, 255)
             )
         }
-        if (engine.hasShield) {
+        if (engine.isShieldActive) {
             pills += StatusPill(
                 icon = StatusIcon.SHIELD,
-                text = "1",
+                text = "${ceil(engine.shieldSecondsRemaining).toInt()}s",
                 color = Color.rgb(38, 198, 218)
             )
         }

@@ -27,9 +27,6 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
     var bestCombo: Int = 0
         private set
 
-    var hasShield: Boolean = false
-        private set
-
     var caughtWhiteCount: Int = 0
         private set
 
@@ -41,6 +38,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
 
     private var slowMotionTicksRemaining: Int = 0
     private var platformSlowTicksRemaining: Int = 0
+    private var shieldTicksRemaining: Int = 0
 
     val comboMultiplier: Int
         get() = when {
@@ -49,6 +47,12 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
             combo >= config.comboTierTwoStreak -> 2
             else -> 1
         }
+
+    val isShieldActive: Boolean
+        get() = shieldTicksRemaining > 0
+
+    val shieldSecondsRemaining: Float
+        get() = shieldTicksRemaining * CatchRectGameConfig.FIXED_DT
 
     val isSlowMotionActive: Boolean
         get() = slowMotionTicksRemaining > 0
@@ -161,6 +165,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         if (platformSlowTicksRemaining > 0) {
             platformSlowTicksRemaining--
         }
+        if (shieldTicksRemaining > 0) {
+            shieldTicksRemaining--
+        }
 
         val spawnDelaySeconds = max(
             config.minSpawnDelaySeconds,
@@ -209,8 +216,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
 
                     CubeType.RED, CubeType.RED_FAST -> {
                         combo = 0
-                        if (hasShield) {
-                            hasShield = false
+                        if (isShieldActive) {
                             blockedHitCount += 1
                         } else {
                             lives -= 1
@@ -219,7 +225,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
 
                     CubeType.GREEN -> lives += 1
                     CubeType.SHIELD -> {
-                        hasShield = true
+                        shieldTicksRemaining = shieldDurationTicks()
                         powerUpsUsed += 1
                     }
 
@@ -289,12 +295,12 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         lives = 3
         combo = 0
         bestCombo = 0
-        hasShield = false
         caughtWhiteCount = 0
         blockedHitCount = 0
         powerUpsUsed = 0
         slowMotionTicksRemaining = 0
         platformSlowTicksRemaining = 0
+        shieldTicksRemaining = 0
         isGameOver = false
         spawnAccumulatorSeconds = 0f
         reseed()
@@ -369,6 +375,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
 
     private fun slowMotionDurationTicks(): Int =
         (config.slowMotionDurationSeconds / CatchRectGameConfig.FIXED_DT).roundToInt()
+
+    private fun shieldDurationTicks(): Int =
+        (config.shieldDurationSeconds / CatchRectGameConfig.FIXED_DT).roundToInt()
 
     private fun platformSlowDurationTicks(): Int =
         (config.platformSlowDurationSeconds / CatchRectGameConfig.FIXED_DT).roundToInt()
