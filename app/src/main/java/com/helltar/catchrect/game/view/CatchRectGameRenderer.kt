@@ -1,10 +1,14 @@
 package com.helltar.catchrect.game.view
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.graphics.Shader
 import android.util.TypedValue
@@ -42,7 +46,14 @@ class CatchRectGameRenderer(context: Context) {
     private val starPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val particlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val flashPaint = Paint()
-    private val backgroundPaint = Paint()
+    private val backgroundPaint = Paint().apply { isDither = true }
+
+    // Static dither noise overlaid on the gradient to break up 8-bit colour banding.
+    private val ditherPaint = Paint().apply {
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.OVERLAY)
+        alpha = 24
+        shader = buildDitherShader()
+    }
 
     private val buttonTextPaint =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -212,6 +223,7 @@ class CatchRectGameRenderer(context: Context) {
             backgroundPaint.shader = backgroundShader
         }
         canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), backgroundPaint)
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), ditherPaint)
     }
 
     private fun ensureStars(width: Int, height: Int) {
@@ -395,6 +407,24 @@ class CatchRectGameRenderer(context: Context) {
 
     private fun withAlpha(color: Int, alpha: Int): Int =
         Color.argb(alpha.coerceIn(0, 255), Color.red(color), Color.green(color), Color.blue(color))
+
+    /**
+     * Builds a small tiled grey-noise texture. Drawn with OVERLAY blending, mid-grey (128)
+     * is a no-op while the per-pixel deviations nudge each pixel up or down, dithering away
+     * the visible colour banding of the dark background gradient. Generated once, reused.
+     */
+    private fun buildDitherShader(): BitmapShader {
+        val size = 128
+        val rnd = java.util.Random(0x5EED)
+        val pixels = IntArray(size * size)
+        for (i in pixels.indices) {
+            val v = 96 + rnd.nextInt(65) // 96..160, centred on mid-grey
+            pixels[i] = Color.rgb(v, v, v)
+        }
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        bitmap.setPixels(pixels, 0, size, 0, 0, size, size)
+        return BitmapShader(bitmap, Shader.TileMode.REPEAT, Shader.TileMode.REPEAT)
+    }
 
     private fun dp(value: Float): Float = value * density
 
