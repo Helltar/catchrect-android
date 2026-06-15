@@ -41,6 +41,10 @@ class GameSoundPlayer {
                         sleep(55)
                         toneGenerator.startTone(ToneGenerator.TONE_PROP_ACK, 140)
                     }
+
+                    CubeType.PLATFORM_SLOW -> {
+                        toneGenerator.startTone(ToneGenerator.TONE_CDMA_SOFT_ERROR_LITE, 170)
+                    }
                 }
             }
         }

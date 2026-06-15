@@ -201,13 +201,23 @@ class CatchRectSurfaceView(context: Context) : SurfaceView(context), SurfaceHold
 
             val touchX = pendingTouchX
             if (!touchX.isNaN()) {
-                pendingTouchX = Float.NaN
-                engine.movePlatformByCenter(touchX)
+                if (engine.isPlatformSlowActive) {
+                    val reached = engine.movePlatformTowardCenter(
+                        centerX = touchX,
+                        maxDeltaX = KEYBOARD_SPEED_PX_PER_SEC * engine.platformMovementFactor * dt
+                    )
+                    if (reached) {
+                        pendingTouchX = Float.NaN
+                    }
+                } else {
+                    pendingTouchX = Float.NaN
+                    engine.movePlatformByCenter(touchX)
+                }
             }
 
             val dir = keyDirection
             if (dir != 0) {
-                engine.movePlatformBy(dir * KEYBOARD_SPEED_PX_PER_SEC * dt)
+                engine.movePlatformBy(dir * KEYBOARD_SPEED_PX_PER_SEC * engine.platformMovementFactor * dt)
             }
 
             engine.update()

@@ -20,7 +20,9 @@ data class CatchRectGameConfig(
     val comboTierThreeStreak: Int = 10,
     val comboTierFiveStreak: Int = 20,
     val slowMotionDurationSeconds: Float = 5f,
-    val slowMotionSpeedFactor: Float = 0.45f
+    val slowMotionSpeedFactor: Float = 0.45f,
+    val platformSlowDurationSeconds: Float = 4f,
+    val platformSlowSpeedFactor: Float = 0.55f
 ) {
     fun basePlatformWidthPx(viewportWidth: Int): Float = clampWidth(viewportWidth) * platformWidthFactor
 
