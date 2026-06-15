@@ -10,7 +10,6 @@ androidTest/
 build/
 data/
 release/
-server/
 test/
 
 local.properties
