@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.os.Bundle
@@ -50,6 +51,7 @@ class MainActivity : ComponentActivity() {
     private var isScoreSubmitting = false
 
     private val prefs by lazy { getSharedPreferences("settings", Context.MODE_PRIVATE) }
+    private val displayTypeface: Typeface by lazy { Typeface.create("sans-serif-medium", Typeface.BOLD) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -154,6 +156,7 @@ class MainActivity : ComponentActivity() {
             text = getString(R.string.submit_score_title, replay.score)
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+            typeface = displayTypeface
             gravity = Gravity.CENTER
             setPadding(0, dp(24), 0, dp(20))
         }
@@ -396,6 +399,7 @@ class MainActivity : ComponentActivity() {
             text = getString(R.string.leaderboard_title)
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+            typeface = displayTypeface
             gravity = Gravity.CENTER
         }
 
@@ -516,6 +520,7 @@ class MainActivity : ComponentActivity() {
             text = getString(R.string.about_title)
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+            typeface = displayTypeface
             gravity = Gravity.CENTER
         }
 
@@ -536,6 +541,7 @@ class MainActivity : ComponentActivity() {
                 text = getString(R.string.app_name)
                 setTextColor(Color.WHITE)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+                typeface = displayTypeface
                 gravity = Gravity.CENTER
                 setPadding(0, 0, 0, dp(16))
             })
@@ -607,6 +613,7 @@ class MainActivity : ComponentActivity() {
             text = title
             setTextColor(accentColor)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+            typeface = displayTypeface
             gravity = Gravity.CENTER
         }
 
@@ -763,12 +770,15 @@ class MainActivity : ComponentActivity() {
             addView(TextView(context).apply {
                 text = getString(R.string.app_name)
                 setTextColor(Color.WHITE)
-                setTextSize(TypedValue.COMPLEX_UNIT_SP, 42f)
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 46f)
+                typeface = displayTypeface
+                letterSpacing = 0.04f
                 gravity = Gravity.CENTER
-                setPadding(0, dp(12), 0, dp(32))
+                setShadowLayer(dp(20).toFloat(), 0f, 0f, Color.rgb(41, 98, 255))
+                setPadding(0, dp(12), 0, dp(36))
             })
 
-            addView(createMenuButton(getString(R.string.play)) { startGame() })
+            addView(createMenuButton(getString(R.string.play), accent = true) { startGame() })
 
             addView(createMenuButton(getString(R.string.leaderboard_title)) { showLeaderboard() }.apply {
                 (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
@@ -792,7 +802,7 @@ class MainActivity : ComponentActivity() {
                     gameView.setOledBackground(isOledBackground)
                     prefs.edit { putBoolean(PREF_OLED_BACKGROUND, isOledBackground) }
                     text = oledLabel()
-                    menuView.setBackgroundColor(menuBgColor())
+                    applyMenuBackground(menuView)
                 }
             }
             addView(oledButton)
@@ -817,7 +827,7 @@ class MainActivity : ComponentActivity() {
         return LinearLayout(this).apply {
             layoutParams = rootLayoutParams
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(menuBgColor())
+            applyMenuBackground(this)
             addView(
                 scrollView,
                 LinearLayout.LayoutParams(
@@ -828,13 +838,13 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun createMenuButton(label: String, onClick: () -> Unit): TextView {
-        val btnColor = Color.rgb(40, 50, 65)
-        val rippleColor = Color.rgb(70, 85, 110)
+    private fun createMenuButton(label: String, accent: Boolean = false, onClick: () -> Unit): TextView {
+        val btnColor = if (accent) Color.rgb(41, 98, 255) else Color.rgb(40, 50, 65)
+        val rippleColor = if (accent) Color.rgb(90, 140, 255) else Color.rgb(70, 85, 110)
 
         val shape = GradientDrawable().apply {
             setColor(btnColor)
-            cornerRadius = dp(12).toFloat()
+            cornerRadius = dp(14).toFloat()
         }
 
         val ripple = RippleDrawable(
@@ -847,6 +857,8 @@ class MainActivity : ComponentActivity() {
             text = label
             setTextColor(Color.WHITE)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+            typeface = displayTypeface
+            letterSpacing = 0.03f
             gravity = Gravity.CENTER
             background = ripple
             isClickable = true
@@ -866,7 +878,7 @@ class MainActivity : ComponentActivity() {
 
         val shape = GradientDrawable().apply {
             setColor(btnColor)
-            cornerRadius = dp(12).toFloat()
+            cornerRadius = dp(14).toFloat()
         }
 
         val ripple = RippleDrawable(
@@ -891,6 +903,8 @@ class MainActivity : ComponentActivity() {
                 text = label
                 setTextColor(Color.WHITE)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+                typeface = displayTypeface
+                letterSpacing = 0.03f
                 gravity = Gravity.CENTER
                 includeFontPadding = false
             })
@@ -1012,7 +1026,17 @@ class MainActivity : ComponentActivity() {
         getString(R.string.pure_black_off)
     }
 
-    private fun menuBgColor() = if (isOledBackground) Color.BLACK else Color.rgb(16, 20, 24)
+    private fun applyMenuBackground(view: View) {
+        if (isOledBackground) {
+            view.background = null
+            view.setBackgroundColor(Color.BLACK)
+        } else {
+            view.background = GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                intArrayOf(Color.rgb(26, 32, 48), Color.rgb(15, 18, 26), Color.rgb(9, 11, 16))
+            ).apply { setDither(true) }
+        }
+    }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
