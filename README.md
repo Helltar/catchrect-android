@@ -15,6 +15,12 @@ A paddle sits at the bottom of the screen. Squares fall from above — move the 
 | ⬜ White | **+1 point** |
 | 🟥 Red | **−1 life** |
 | 🟩 Green | **+1 life** |
+| 🟦 Shield | **Blocks one red hit** |
+| 🟨 Slow Motion | **Slows falling squares for a short time** |
+
+Catch white squares in a row to build a combo multiplier. Red squares and missed white
+squares reset the combo, while shield and slow motion power-ups can save a run at the
+right moment.
 
 The more points you collect, the faster the squares fall. How long can you survive?
 

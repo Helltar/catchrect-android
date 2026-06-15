@@ -31,6 +31,16 @@ class GameSoundPlayer {
                     CubeType.GREEN -> {
                         toneGenerator.startTone(ToneGenerator.TONE_PROP_ACK, 120)
                     }
+
+                    CubeType.SHIELD -> {
+                        toneGenerator.startTone(ToneGenerator.TONE_PROP_ACK, 160)
+                    }
+
+                    CubeType.SLOW_MOTION -> {
+                        toneGenerator.startTone(ToneGenerator.TONE_PROP_BEEP, 80)
+                        sleep(55)
+                        toneGenerator.startTone(ToneGenerator.TONE_PROP_ACK, 140)
+                    }
                 }
             }
         }

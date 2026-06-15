@@ -15,7 +15,12 @@ data class CatchRectGameConfig(
     val maxCubeSizePxExclusive: Int = 42,
     val baseCubeSpeedPxPerSecond: Float = 350f,
     val cubeSpeedPerStep: Float = 32f,
-    val scorePerSpeedStep: Int = 15
+    val scorePerSpeedStep: Int = 15,
+    val comboTierTwoStreak: Int = 5,
+    val comboTierThreeStreak: Int = 10,
+    val comboTierFiveStreak: Int = 20,
+    val slowMotionDurationSeconds: Float = 5f,
+    val slowMotionSpeedFactor: Float = 0.45f
 ) {
     fun basePlatformWidthPx(viewportWidth: Int): Float = clampWidth(viewportWidth) * platformWidthFactor
 

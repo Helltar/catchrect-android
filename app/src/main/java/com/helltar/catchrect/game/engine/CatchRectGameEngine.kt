@@ -4,6 +4,7 @@ import com.helltar.catchrect.game.model.CubeType
 import com.helltar.catchrect.game.model.FallingCube
 import java.security.SecureRandom
 import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.random.Random
 
 class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: Long = SecureRandom().nextLong()) {
@@ -19,6 +20,31 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         private set
     var lives: Int = 3
         private set
+
+    var combo: Int = 0
+        private set
+
+    var bestCombo: Int = 0
+        private set
+
+    var hasShield: Boolean = false
+        private set
+
+    private var slowMotionTicksRemaining: Int = 0
+
+    val comboMultiplier: Int
+        get() = when {
+            combo >= config.comboTierFiveStreak -> 5
+            combo >= config.comboTierThreeStreak -> 3
+            combo >= config.comboTierTwoStreak -> 2
+            else -> 1
+        }
+
+    val isSlowMotionActive: Boolean
+        get() = slowMotionTicksRemaining > 0
+
+    val slowMotionSecondsRemaining: Float
+        get() = slowMotionTicksRemaining * CatchRectGameConfig.FIXED_DT
 
     @Volatile
     var isGameOver: Boolean = false
@@ -92,6 +118,11 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         tickCount++
         clampPlatform()
 
+        val motionScale = if (isSlowMotionActive) config.slowMotionSpeedFactor else 1f
+        if (slowMotionTicksRemaining > 0) {
+            slowMotionTicksRemaining--
+        }
+
         val spawnDelaySeconds = max(
             config.minSpawnDelaySeconds,
             config.baseSpawnDelaySeconds - (score / config.scorePerSpawnStep) * config.spawnDelayDecreasePerStep
@@ -113,7 +144,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         var writeIdx = 0
         for (readIdx in fallingCubes.indices) {
             val cube = fallingCubes[readIdx]
-            cube.y += cube.speed * dt
+            cube.y += cube.speed * dt * motionScale
 
             val cubeRight = cube.x + cube.size
             val cubeBottom = cube.y + cube.size
@@ -130,14 +161,32 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
                     y = pTop
                 )
                 when (cube.type) {
-                    CubeType.WHITE -> score += 1
-                    CubeType.RED, CubeType.RED_FAST -> lives -= 1
+                    CubeType.WHITE -> {
+                        combo += 1
+                        bestCombo = max(bestCombo, combo)
+                        score += comboMultiplier
+                    }
+
+                    CubeType.RED, CubeType.RED_FAST -> {
+                        combo = 0
+                        if (hasShield) {
+                            hasShield = false
+                        } else {
+                            lives -= 1
+                        }
+                    }
+
                     CubeType.GREEN -> lives += 1
+                    CubeType.SHIELD -> hasShield = true
+                    CubeType.SLOW_MOTION -> slowMotionTicksRemaining = slowMotionDurationTicks()
                 }
                 continue
             }
 
             if (cube.y > viewportHeight + cube.size) {
+                if (cube.type == CubeType.WHITE) {
+                    combo = 0
+                }
                 continue
             }
 
@@ -184,6 +233,10 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         lastRecordedX = Float.NaN
         score = 0
         lives = 3
+        combo = 0
+        bestCombo = 0
+        hasShield = false
+        slowMotionTicksRemaining = 0
         isGameOver = false
         spawnAccumulatorSeconds = 0f
         reseed()
@@ -202,13 +255,20 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
     }
 
     private fun spawnCube() {
-        val redBonus = (score / 50) * 0.01f
+        val redBonus = ((score / 50) * 0.01f).coerceAtMost(0.10f)
+        val whiteChance = 0.73f - redBonus
+        val redChance = 0.12f + redBonus * 0.6f
+        val fastRedChance = 0.07f + redBonus * 0.4f
+        val greenChance = 0.03f
+        val shieldChance = 0.025f
         val chance = random.nextFloat()
         val type = when {
-            chance < 0.79f - redBonus -> CubeType.WHITE
-            chance < 0.92f -> CubeType.RED
-            chance < 0.99f -> CubeType.RED_FAST
-            else -> CubeType.GREEN
+            chance < whiteChance -> CubeType.WHITE
+            chance < whiteChance + redChance -> CubeType.RED
+            chance < whiteChance + redChance + fastRedChance -> CubeType.RED_FAST
+            chance < whiteChance + redChance + fastRedChance + greenChance -> CubeType.GREEN
+            chance < whiteChance + redChance + fastRedChance + greenChance + shieldChance -> CubeType.SHIELD
+            else -> CubeType.SLOW_MOTION
         }
 
         val size = if (type == CubeType.RED_FAST) {
@@ -226,6 +286,8 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
             CubeType.RED -> 1.1f
             CubeType.RED_FAST -> 2.2f
             CubeType.GREEN -> 0.9f
+            CubeType.SHIELD -> 0.95f
+            CubeType.SLOW_MOTION -> 0.85f
         }
 
         val speed =
@@ -244,6 +306,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         val minWidth = config.basePlatformWidthPx(viewportWidth) * config.minPlatformWidthFactor
         return reducedWidth.coerceAtLeast(minWidth)
     }
+
+    private fun slowMotionDurationTicks(): Int =
+        (config.slowMotionDurationSeconds / CatchRectGameConfig.FIXED_DT).roundToInt()
 
     private fun reseed() {
         seed = SecureRandom().nextLong()

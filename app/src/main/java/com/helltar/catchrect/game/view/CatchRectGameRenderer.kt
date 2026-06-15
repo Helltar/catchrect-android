@@ -17,6 +17,7 @@ import android.util.TypedValue
 import com.helltar.catchrect.R
 import com.helltar.catchrect.game.engine.CatchRectGameEngine
 import com.helltar.catchrect.game.model.CubeType
+import kotlin.math.ceil
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -48,6 +49,17 @@ class CatchRectGameRenderer(context: Context) {
 
     private val hudIconPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val heartPath = buildHeartPath()
+    private val shieldPath = buildShieldPath()
+    private val statusPillPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val statusTextPaint =
+        Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            textSize = sp(13f)
+            textAlign = Paint.Align.CENTER
+            typeface = hudTypeface
+            letterSpacing = 0.03f
+        }
+    private val statusIconPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -124,7 +136,10 @@ class CatchRectGameRenderer(context: Context) {
     /** Spawns purely cosmetic feedback when a cube is caught. Does not touch game logic. */
     fun onCubeCaught(type: CubeType, x: Float, y: Float) {
         val baseColor = cubeColor(type)
-        val count = if (type == CubeType.RED_FAST) 18 else 14
+        val count = when (type) {
+            CubeType.RED_FAST, CubeType.SHIELD, CubeType.SLOW_MOTION -> 18
+            else -> 14
+        }
         repeat(count) {
             val angle = random.nextFloat() * Math.PI.toFloat() * 2f
             val speed = dp(60f) + random.nextFloat() * dp(180f)
@@ -142,6 +157,8 @@ class CatchRectGameRenderer(context: Context) {
         when (type) {
             CubeType.RED, CubeType.RED_FAST -> triggerFlash(Color.rgb(229, 57, 53), 0.45f)
             CubeType.GREEN -> triggerFlash(Color.rgb(67, 160, 71), 0.4f)
+            CubeType.SHIELD -> triggerFlash(Color.rgb(38, 198, 218), 0.38f)
+            CubeType.SLOW_MOTION -> triggerFlash(Color.rgb(255, 193, 7), 0.34f)
             CubeType.WHITE -> scorePulse = 1f
         }
     }
@@ -191,6 +208,7 @@ class CatchRectGameRenderer(context: Context) {
         drawHudEntry(canvas, rightX, hudY, engine.lives.toString(), 1f) { cx, cy, s ->
             drawHeartIcon(canvas, cx, cy, s)
         }
+        drawStatusHud(canvas, engine, hudY + dp(32f))
 
         drawPlatform(canvas, engine)
 
@@ -273,7 +291,11 @@ class CatchRectGameRenderer(context: Context) {
         val radius = (bottom - top) / 2f
 
         val glowPad = dp(6f)
-        platformGlowPaint.color = Color.argb(70, 120, 170, 255)
+        platformGlowPaint.color = if (engine.hasShield) {
+            Color.argb(120, 38, 198, 218)
+        } else {
+            Color.argb(70, 120, 170, 255)
+        }
         tmpRect.set(left - glowPad, top - glowPad, right + glowPad, bottom + glowPad)
         canvas.drawRoundRect(tmpRect, radius + glowPad, radius + glowPad, platformGlowPaint)
 
@@ -328,6 +350,8 @@ class CatchRectGameRenderer(context: Context) {
         val inset = drawSize * 0.16f
         tmpRect.set(left + inset, top + inset, left + drawSize * 0.5f, top + drawSize * 0.5f)
         canvas.drawRoundRect(tmpRect, radius * 0.6f, radius * 0.6f, highlightPaint)
+
+        drawCubeSymbol(canvas, type, left, top, drawSize)
     }
 
     private fun drawParticles(canvas: Canvas) {
@@ -432,6 +456,61 @@ class CatchRectGameRenderer(context: Context) {
         textPaint.textSize = scoreTextBaseSize
     }
 
+    private fun drawStatusHud(canvas: Canvas, engine: CatchRectGameEngine, centerY: Float) {
+        val pills = ArrayList<StatusPill>(3)
+        if (engine.combo > 1) {
+            pills += StatusPill(
+                icon = StatusIcon.COMBO,
+                text = "x${engine.comboMultiplier} ${engine.combo}",
+                color = Color.rgb(41, 98, 255)
+            )
+        }
+        if (engine.hasShield) {
+            pills += StatusPill(
+                icon = StatusIcon.SHIELD,
+                text = "1",
+                color = Color.rgb(38, 198, 218)
+            )
+        }
+        if (engine.isSlowMotionActive) {
+            pills += StatusPill(
+                icon = StatusIcon.SLOW_MOTION,
+                text = "${ceil(engine.slowMotionSecondsRemaining).toInt()}s",
+                color = Color.rgb(255, 193, 7)
+            )
+        }
+        if (pills.isEmpty()) return
+
+        val height = dp(28f)
+        val gap = dp(8f)
+        val iconSize = dp(14f)
+        val horizontalPad = dp(10f)
+        val iconGap = dp(6f)
+        val widths = pills.map { pill ->
+            horizontalPad * 2f + iconSize + iconGap + statusTextPaint.measureText(pill.text)
+        }
+        val totalWidth = widths.sum() + gap * (pills.size - 1)
+        var left = (engine.viewportWidth - totalWidth) / 2f
+        val baseline = centerY - (statusTextPaint.descent() + statusTextPaint.ascent()) / 2f
+
+        for (i in pills.indices) {
+            val pill = pills[i]
+            val width = widths[i]
+            tmpRect.set(left, centerY - height / 2f, left + width, centerY + height / 2f)
+            statusPillPaint.color = withAlpha(pill.color, 74)
+            canvas.drawRoundRect(tmpRect, height / 2f, height / 2f, statusPillPaint)
+
+            val iconCenterX = left + horizontalPad + iconSize / 2f
+            drawStatusIcon(canvas, pill.icon, iconCenterX, centerY, iconSize, Color.WHITE)
+
+            val textX = iconCenterX + iconSize / 2f + iconGap + statusTextPaint.measureText(pill.text) / 2f
+            statusTextPaint.color = Color.WHITE
+            canvas.drawText(pill.text, textX, baseline, statusTextPaint)
+
+            left += width + gap
+        }
+    }
+
     private fun drawScoreIcon(canvas: Canvas, cx: Float, cy: Float, size: Float) {
         val half = size / 2f
         val radius = size * 0.24f
@@ -450,6 +529,54 @@ class CatchRectGameRenderer(context: Context) {
         canvas.restore()
     }
 
+    private fun drawCubeSymbol(canvas: Canvas, type: CubeType, left: Float, top: Float, size: Float) {
+        when (type) {
+            CubeType.SHIELD -> drawShieldIcon(canvas, left + size / 2f, top + size / 2f, size * 0.52f, Color.WHITE)
+            CubeType.SLOW_MOTION -> drawSlowMotionIcon(canvas, left + size / 2f, top + size / 2f, size * 0.5f, Color.WHITE)
+            else -> Unit
+        }
+    }
+
+    private fun drawStatusIcon(canvas: Canvas, icon: StatusIcon, cx: Float, cy: Float, size: Float, color: Int) {
+        when (icon) {
+            StatusIcon.COMBO -> drawComboIcon(canvas, cx, cy, size, color)
+            StatusIcon.SHIELD -> drawShieldIcon(canvas, cx, cy, size, color)
+            StatusIcon.SLOW_MOTION -> drawSlowMotionIcon(canvas, cx, cy, size, color)
+        }
+    }
+
+    private fun drawComboIcon(canvas: Canvas, cx: Float, cy: Float, size: Float, color: Int) {
+        val half = size / 2f
+        val radius = size * 0.18f
+        statusIconPaint.style = Paint.Style.FILL
+        statusIconPaint.color = withAlpha(color, 210)
+        tmpRect.set(cx - half * 0.9f, cy - half * 0.25f, cx + half * 0.2f, cy + half * 0.85f)
+        canvas.drawRoundRect(tmpRect, radius, radius, statusIconPaint)
+        statusIconPaint.color = color
+        tmpRect.set(cx - half * 0.2f, cy - half * 0.85f, cx + half * 0.9f, cy + half * 0.25f)
+        canvas.drawRoundRect(tmpRect, radius, radius, statusIconPaint)
+    }
+
+    private fun drawShieldIcon(canvas: Canvas, cx: Float, cy: Float, size: Float, color: Int) {
+        statusIconPaint.style = Paint.Style.FILL
+        statusIconPaint.color = withAlpha(color, 220)
+        canvas.save()
+        canvas.translate(cx - size / 2f, cy - size / 2f)
+        canvas.scale(size, size)
+        canvas.drawPath(shieldPath, statusIconPaint)
+        canvas.restore()
+    }
+
+    private fun drawSlowMotionIcon(canvas: Canvas, cx: Float, cy: Float, size: Float, color: Int) {
+        statusIconPaint.color = withAlpha(color, 225)
+        statusIconPaint.style = Paint.Style.STROKE
+        statusIconPaint.strokeWidth = size * 0.11f
+        canvas.drawCircle(cx, cy, size * 0.43f, statusIconPaint)
+        canvas.drawLine(cx, cy, cx, cy - size * 0.25f, statusIconPaint)
+        canvas.drawLine(cx, cy, cx + size * 0.22f, cy + size * 0.12f, statusIconPaint)
+        statusIconPaint.style = Paint.Style.FILL
+    }
+
     /** Heart shape in a unit [0,1] box, centred so scaling around (0.5, 0.5) keeps it balanced. */
     private fun buildHeartPath(): Path = Path().apply {
         moveTo(0.5f, 0.92f)
@@ -460,10 +587,20 @@ class CatchRectGameRenderer(context: Context) {
         close()
     }
 
+    private fun buildShieldPath(): Path = Path().apply {
+        moveTo(0.5f, 0.02f)
+        lineTo(0.88f, 0.18f)
+        cubicTo(0.86f, 0.58f, 0.72f, 0.82f, 0.5f, 0.98f)
+        cubicTo(0.28f, 0.82f, 0.14f, 0.58f, 0.12f, 0.18f)
+        close()
+    }
+
     private fun cubeColor(type: CubeType): Int = when (type) {
         CubeType.WHITE -> Color.rgb(236, 240, 245)
         CubeType.RED, CubeType.RED_FAST -> Color.rgb(229, 57, 53)
         CubeType.GREEN -> Color.rgb(67, 160, 71)
+        CubeType.SHIELD -> Color.rgb(38, 198, 218)
+        CubeType.SLOW_MOTION -> Color.rgb(255, 193, 7)
     }
 
     private fun withAlpha(color: Int, alpha: Int): Int =
@@ -510,4 +647,16 @@ class CatchRectGameRenderer(context: Context) {
         val size: Float,
         val color: Int
     )
+
+    private class StatusPill(
+        val icon: StatusIcon,
+        val text: String,
+        val color: Int
+    )
+
+    private enum class StatusIcon {
+        COMBO,
+        SHIELD,
+        SLOW_MOTION
+    }
 }

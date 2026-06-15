@@ -4,5 +4,7 @@ enum class CubeType {
     WHITE,
     RED,
     RED_FAST,
-    GREEN
+    GREEN,
+    SHIELD,
+    SLOW_MOTION
 }
