@@ -7,10 +7,12 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import android.graphics.Shader
+import android.graphics.Typeface
 import android.util.TypedValue
 import com.helltar.catchrect.R
 import com.helltar.catchrect.game.engine.CatchRectGameEngine
@@ -26,12 +28,16 @@ class CatchRectGameRenderer(context: Context) {
 
     private val random = Random(System.nanoTime())
 
+    private val hudTypeface = Typeface.create("sans-serif-medium", Typeface.BOLD)
+
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        textSize = sp(18f)
+        textSize = sp(20f)
         textAlign = Paint.Align.CENTER
+        typeface = hudTypeface
+        letterSpacing = 0.06f
     }
-    private val scoreTextBaseSize = sp(18f)
+    private val scoreTextBaseSize = sp(20f)
 
     private val overlayPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.argb(190, 0, 0, 0) }
     private val platformPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
@@ -39,6 +45,9 @@ class CatchRectGameRenderer(context: Context) {
     private val buttonPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(41, 98, 255) }
     private val submitButtonPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(67, 160, 71) }
     private val leaderboardButtonPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(214, 168, 48) }
+
+    private val hudIconPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val heartPath = buildHeartPath()
 
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -176,10 +185,12 @@ class CatchRectGameRenderer(context: Context) {
         val hudY = engine.safeTopInset + dp(28f)
         val leftX = engine.viewportWidth * 0.25f
         val rightX = engine.viewportWidth * 0.75f
-        textPaint.textSize = scoreTextBaseSize * (1f + 0.35f * scorePulse)
-        canvas.drawText(resources.getString(R.string.game_hud_score, engine.score), leftX, hudY, textPaint)
-        textPaint.textSize = scoreTextBaseSize
-        canvas.drawText(resources.getString(R.string.game_hud_lives, engine.lives), rightX, hudY, textPaint)
+        drawHudEntry(canvas, leftX, hudY, engine.score.toString(), 1f + 0.35f * scorePulse) { cx, cy, s ->
+            drawScoreIcon(canvas, cx, cy, s)
+        }
+        drawHudEntry(canvas, rightX, hudY, engine.lives.toString(), 1f) { cx, cy, s ->
+            drawHeartIcon(canvas, cx, cy, s)
+        }
 
         drawPlatform(canvas, engine)
 
@@ -397,6 +408,56 @@ class CatchRectGameRenderer(context: Context) {
     private fun drawButtonText(canvas: Canvas, text: String, rect: RectF) {
         val textY = rect.centerY() - ((buttonTextPaint.descent() + buttonTextPaint.ascent()) / 2f)
         canvas.drawText(text, rect.centerX(), textY, buttonTextPaint)
+    }
+
+    private fun drawHudEntry(
+        canvas: Canvas,
+        centerX: Float,
+        baselineY: Float,
+        number: String,
+        scale: Float,
+        drawIcon: (cx: Float, cy: Float, size: Float) -> Unit
+    ) {
+        textPaint.textSize = scoreTextBaseSize * scale
+        val textWidth = textPaint.measureText(number)
+        val iconSize = textPaint.textSize * 0.74f
+        val gap = iconSize * 0.5f
+        val totalWidth = iconSize + gap + textWidth
+        val startX = centerX - totalWidth / 2f
+        val iconCenterY = baselineY + (textPaint.descent() + textPaint.ascent()) / 2f
+
+        drawIcon(startX + iconSize / 2f, iconCenterY, iconSize)
+        canvas.drawText(number, startX + iconSize + gap + textWidth / 2f, baselineY, textPaint)
+
+        textPaint.textSize = scoreTextBaseSize
+    }
+
+    private fun drawScoreIcon(canvas: Canvas, cx: Float, cy: Float, size: Float) {
+        val half = size / 2f
+        val radius = size * 0.24f
+        hudIconPaint.color = Color.rgb(236, 240, 245)
+        tmpRect.set(cx - half, cy - half, cx + half, cy + half)
+        canvas.drawRoundRect(tmpRect, radius, radius, hudIconPaint)
+    }
+
+    private fun drawHeartIcon(canvas: Canvas, cx: Float, cy: Float, size: Float) {
+        hudIconPaint.color = Color.rgb(229, 57, 53)
+        canvas.save()
+        canvas.translate(cx, cy)
+        canvas.scale(size, size)
+        canvas.translate(-0.5f, -0.5f)
+        canvas.drawPath(heartPath, hudIconPaint)
+        canvas.restore()
+    }
+
+    /** Heart shape in a unit [0,1] box, centred so scaling around (0.5, 0.5) keeps it balanced. */
+    private fun buildHeartPath(): Path = Path().apply {
+        moveTo(0.5f, 0.92f)
+        cubicTo(0.5f, 0.92f, 0.0f, 0.55f, 0.0f, 0.30f)
+        cubicTo(0.0f, 0.10f, 0.27f, 0.05f, 0.5f, 0.25f)
+        cubicTo(0.73f, 0.05f, 1.0f, 0.10f, 1.0f, 0.30f)
+        cubicTo(1.0f, 0.55f, 0.5f, 0.92f, 0.5f, 0.92f)
+        close()
     }
 
     private fun cubeColor(type: CubeType): Int = when (type) {

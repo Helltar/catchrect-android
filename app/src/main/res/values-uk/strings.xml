@@ -29,8 +29,6 @@
     <string name="website_label">helltar.com</string>
     <string name="github_label">Вихідний код на GitHub</string>
     <string name="play">Грати</string>
-    <string name="game_hud_score">⭐ %1$d</string>
-    <string name="game_hud_lives">❤️ %1$d</string>
     <string name="game_over_title">Гру закінчено</string>
     <string name="final_score">Фінальний рахунок: %1$d</string>
     <string name="restart">Ще раз</string>

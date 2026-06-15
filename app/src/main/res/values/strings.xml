@@ -27,8 +27,6 @@
     <string name="website_label">helltar.com</string>
     <string name="github_label">Source code on GitHub</string>
     <string name="play">Play</string>
-    <string name="game_hud_score">⭐ %1$d</string>
-    <string name="game_hud_lives">❤️ %1$d</string>
     <string name="game_over_title">Game Over</string>
     <string name="final_score">Final score: %1$d</string>
     <string name="restart">Restart</string>
