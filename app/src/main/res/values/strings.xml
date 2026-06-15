@@ -29,10 +29,11 @@
     <string name="play">Play</string>
     <string name="game_over_title">Game Over</string>
     <string name="final_score">Final score: %1$d</string>
-    <string name="stat_time">Time: %1$s</string>
-    <string name="stat_best_combo">Best combo: x%1$d</string>
-    <string name="stat_caught">White caught: %1$d</string>
-    <string name="stat_powerups_blocks">Power-ups: %1$d  Shield blocks: %2$d</string>
+    <string name="stat_label_time">Time</string>
+    <string name="stat_label_best_combo">Best combo</string>
+    <string name="stat_label_caught">Whites caught</string>
+    <string name="stat_label_powerups">Power-ups</string>
+    <string name="stat_label_blocks">Shield blocks</string>
     <string name="restart">Restart</string>
     <string name="submit_score_button">Submit Score</string>
 

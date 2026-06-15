@@ -103,6 +103,36 @@ class CatchRectGameRenderer(context: Context) {
             letterSpacing = 0.02f
         }
 
+    private val statPanelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        color = Color.argb(36, 255, 255, 255)
+    }
+
+    private val statPanelStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        color = Color.argb(46, 255, 255, 255)
+        strokeWidth = dp(1f)
+    }
+
+    private val statDividerPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb(26, 255, 255, 255)
+        strokeWidth = dp(1f)
+    }
+
+    private val statLabelPaint =
+        Paint(statPaint).apply {
+            color = Color.argb(160, 255, 255, 255)
+            textAlign = Paint.Align.LEFT
+            letterSpacing = 0.01f
+        }
+
+    private val statValuePaint =
+        Paint(statPaint).apply {
+            color = Color.WHITE
+            textAlign = Paint.Align.RIGHT
+            letterSpacing = 0.01f
+        }
+
     private val restartButtonRect = RectF()
     private val submitButtonRect = RectF()
     private val leaderboardButtonRect = RectF()
@@ -400,9 +430,9 @@ class CatchRectGameRenderer(context: Context) {
         val centerX = engine.viewportWidth / 2f
         val centerY = engine.viewportHeight / 2f
 
-        canvas.drawText(resources.getString(R.string.game_over_title), centerX, centerY - dp(112f), titlePaint)
-        canvas.drawText(resources.getString(R.string.final_score, engine.score), centerX, centerY - dp(76f), subtitlePaint)
-        drawRunStats(canvas, engine, centerX, centerY - dp(40f))
+        canvas.drawText(resources.getString(R.string.game_over_title), centerX, centerY - dp(150f), titlePaint)
+        canvas.drawText(resources.getString(R.string.final_score, engine.score), centerX, centerY - dp(112f), subtitlePaint)
+        val panelBottom = drawRunStats(canvas, engine, centerX, centerY - dp(88f))
 
         val buttonW = dp(170f)
         val buttonH = dp(56f)
@@ -410,9 +440,9 @@ class CatchRectGameRenderer(context: Context) {
 
         restartButtonRect.set(
             centerX - buttonW / 2f,
-            centerY + dp(54f),
+            panelBottom + dp(22f),
             centerX + buttonW / 2f,
-            centerY + dp(54f) + buttonH
+            panelBottom + dp(22f) + buttonH
         )
         canvas.drawRoundRect(restartButtonRect, cornerR, cornerR, buttonPaint)
         drawButtonText(canvas, resources.getString(R.string.restart), restartButtonRect)
@@ -449,17 +479,44 @@ class CatchRectGameRenderer(context: Context) {
         canvas.drawText(text, rect.centerX(), textY, buttonTextPaint)
     }
 
-    private fun drawRunStats(canvas: Canvas, engine: CatchRectGameEngine, centerX: Float, firstBaselineY: Float) {
+    /** Draws the results card and returns its bottom Y so the buttons can flow below it. */
+    private fun drawRunStats(canvas: Canvas, engine: CatchRectGameEngine, centerX: Float, topY: Float): Float {
         val rows = listOf(
-            resources.getString(R.string.stat_time, formatDuration(engine.survivalSeconds)),
-            resources.getString(R.string.stat_best_combo, engine.bestCombo),
-            resources.getString(R.string.stat_caught, engine.caughtWhiteCount),
-            resources.getString(R.string.stat_powerups_blocks, engine.powerUpsUsed, engine.blockedHitCount)
+            resources.getString(R.string.stat_label_time) to formatDuration(engine.survivalSeconds),
+            resources.getString(R.string.stat_label_best_combo) to "×${engine.bestCombo}",
+            resources.getString(R.string.stat_label_caught) to "${engine.caughtWhiteCount}",
+            resources.getString(R.string.stat_label_powerups) to "${engine.powerUpsUsed}",
+            resources.getString(R.string.stat_label_blocks) to "${engine.blockedHitCount}"
         )
-        val lineHeight = dp(22f)
+
+        val panelWidth = dp(248f)
+        val rowHeight = dp(30f)
+        val verticalPad = dp(12f)
+        val horizontalPad = dp(20f)
+        val panelHeight = verticalPad * 2f + rowHeight * rows.size
+
+        val left = centerX - panelWidth / 2f
+        val right = centerX + panelWidth / 2f
+        val cornerR = dp(16f)
+        tmpRect.set(left, topY, right, topY + panelHeight)
+        canvas.drawRoundRect(tmpRect, cornerR, cornerR, statPanelPaint)
+        canvas.drawRoundRect(tmpRect, cornerR, cornerR, statPanelStrokePaint)
+
+        val labelX = left + horizontalPad
+        val valueX = right - horizontalPad
+        val textOffset = (statLabelPaint.descent() + statLabelPaint.ascent()) / 2f
         for (i in rows.indices) {
-            canvas.drawText(rows[i], centerX, firstBaselineY + lineHeight * i, statPaint)
+            val rowTop = topY + verticalPad + rowHeight * i
+            val rowCenterY = rowTop + rowHeight / 2f
+            if (i > 0) {
+                canvas.drawLine(labelX, rowTop, valueX, rowTop, statDividerPaint)
+            }
+            val baseline = rowCenterY - textOffset
+            canvas.drawText(rows[i].first, labelX, baseline, statLabelPaint)
+            canvas.drawText(rows[i].second, valueX, baseline, statValuePaint)
         }
+
+        return topY + panelHeight
     }
 
     private fun formatDuration(seconds: Float): String {

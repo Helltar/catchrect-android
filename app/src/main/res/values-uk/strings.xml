@@ -31,10 +31,11 @@
     <string name="play">Грати</string>
     <string name="game_over_title">Гру закінчено</string>
     <string name="final_score">Фінальний рахунок: %1$d</string>
-    <string name="stat_time">Час: %1$s</string>
-    <string name="stat_best_combo">Найкраще комбо: x%1$d</string>
-    <string name="stat_caught">Білих спіймано: %1$d</string>
-    <string name="stat_powerups_blocks">Бонуси: %1$d  Блоків щитом: %2$d</string>
+    <string name="stat_label_time">Час</string>
+    <string name="stat_label_best_combo">Найкраще комбо</string>
+    <string name="stat_label_caught">Білих спіймано</string>
+    <string name="stat_label_powerups">Бонуси</string>
+    <string name="stat_label_blocks">Блоків щитом</string>
     <string name="restart">Ще раз</string>
     <string name="submit_score_button">Надіслати</string>
 
