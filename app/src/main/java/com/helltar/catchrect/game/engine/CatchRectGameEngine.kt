@@ -30,6 +30,15 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
     var hasShield: Boolean = false
         private set
 
+    var caughtWhiteCount: Int = 0
+        private set
+
+    var blockedHitCount: Int = 0
+        private set
+
+    var powerUpsUsed: Int = 0
+        private set
+
     private var slowMotionTicksRemaining: Int = 0
 
     val comboMultiplier: Int
@@ -45,6 +54,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
 
     val slowMotionSecondsRemaining: Float
         get() = slowMotionTicksRemaining * CatchRectGameConfig.FIXED_DT
+
+    val survivalSeconds: Float
+        get() = tickCount * CatchRectGameConfig.FIXED_DT
 
     @Volatile
     var isGameOver: Boolean = false
@@ -164,6 +176,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
                     CubeType.WHITE -> {
                         combo += 1
                         bestCombo = max(bestCombo, combo)
+                        caughtWhiteCount += 1
                         score += comboMultiplier
                     }
 
@@ -171,14 +184,22 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
                         combo = 0
                         if (hasShield) {
                             hasShield = false
+                            blockedHitCount += 1
                         } else {
                             lives -= 1
                         }
                     }
 
                     CubeType.GREEN -> lives += 1
-                    CubeType.SHIELD -> hasShield = true
-                    CubeType.SLOW_MOTION -> slowMotionTicksRemaining = slowMotionDurationTicks()
+                    CubeType.SHIELD -> {
+                        hasShield = true
+                        powerUpsUsed += 1
+                    }
+
+                    CubeType.SLOW_MOTION -> {
+                        slowMotionTicksRemaining = slowMotionDurationTicks()
+                        powerUpsUsed += 1
+                    }
                 }
                 continue
             }
@@ -222,7 +243,11 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         safeBottomInset = safeBottomInset,
         inputs = replayInputs.toList(),
         totalTicks = tickCount,
-        score = score
+        score = score,
+        bestCombo = bestCombo,
+        caughtWhiteCount = caughtWhiteCount,
+        blockedHitCount = blockedHitCount,
+        powerUpsUsed = powerUpsUsed
     )
 
     fun restart() {
@@ -236,6 +261,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         combo = 0
         bestCombo = 0
         hasShield = false
+        caughtWhiteCount = 0
+        blockedHitCount = 0
+        powerUpsUsed = 0
         slowMotionTicksRemaining = 0
         isGameOver = false
         spawnAccumulatorSeconds = 0f

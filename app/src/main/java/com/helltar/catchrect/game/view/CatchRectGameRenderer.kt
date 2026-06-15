@@ -95,6 +95,14 @@ class CatchRectGameRenderer(context: Context) {
             textAlign = Paint.Align.CENTER
         }
 
+    private val statPaint =
+        Paint(textPaint).apply {
+            color = Color.argb(220, 255, 255, 255)
+            textSize = sp(15f)
+            textAlign = Paint.Align.CENTER
+            letterSpacing = 0.02f
+        }
+
     private val restartButtonRect = RectF()
     private val submitButtonRect = RectF()
     private val leaderboardButtonRect = RectF()
@@ -386,8 +394,9 @@ class CatchRectGameRenderer(context: Context) {
         val centerX = engine.viewportWidth / 2f
         val centerY = engine.viewportHeight / 2f
 
-        canvas.drawText(resources.getString(R.string.game_over_title), centerX, centerY - dp(50f), titlePaint)
-        canvas.drawText(resources.getString(R.string.final_score, engine.score), centerX, centerY - dp(16f), subtitlePaint)
+        canvas.drawText(resources.getString(R.string.game_over_title), centerX, centerY - dp(112f), titlePaint)
+        canvas.drawText(resources.getString(R.string.final_score, engine.score), centerX, centerY - dp(76f), subtitlePaint)
+        drawRunStats(canvas, engine, centerX, centerY - dp(40f))
 
         val buttonW = dp(170f)
         val buttonH = dp(56f)
@@ -395,9 +404,9 @@ class CatchRectGameRenderer(context: Context) {
 
         restartButtonRect.set(
             centerX - buttonW / 2f,
-            centerY + dp(10f),
+            centerY + dp(54f),
             centerX + buttonW / 2f,
-            centerY + dp(10f) + buttonH
+            centerY + dp(54f) + buttonH
         )
         canvas.drawRoundRect(restartButtonRect, cornerR, cornerR, buttonPaint)
         drawButtonText(canvas, resources.getString(R.string.restart), restartButtonRect)
@@ -432,6 +441,26 @@ class CatchRectGameRenderer(context: Context) {
     private fun drawButtonText(canvas: Canvas, text: String, rect: RectF) {
         val textY = rect.centerY() - ((buttonTextPaint.descent() + buttonTextPaint.ascent()) / 2f)
         canvas.drawText(text, rect.centerX(), textY, buttonTextPaint)
+    }
+
+    private fun drawRunStats(canvas: Canvas, engine: CatchRectGameEngine, centerX: Float, firstBaselineY: Float) {
+        val rows = listOf(
+            resources.getString(R.string.stat_time, formatDuration(engine.survivalSeconds)),
+            resources.getString(R.string.stat_best_combo, engine.bestCombo),
+            resources.getString(R.string.stat_caught, engine.caughtWhiteCount),
+            resources.getString(R.string.stat_powerups_blocks, engine.powerUpsUsed, engine.blockedHitCount)
+        )
+        val lineHeight = dp(22f)
+        for (i in rows.indices) {
+            canvas.drawText(rows[i], centerX, firstBaselineY + lineHeight * i, statPaint)
+        }
+    }
+
+    private fun formatDuration(seconds: Float): String {
+        val totalSeconds = seconds.toInt().coerceAtLeast(0)
+        val minutes = totalSeconds / 60
+        val remainingSeconds = totalSeconds % 60
+        return "$minutes:${remainingSeconds.toString().padStart(2, '0')}"
     }
 
     private fun drawHudEntry(

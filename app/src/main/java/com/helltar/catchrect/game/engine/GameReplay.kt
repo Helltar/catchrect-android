@@ -10,5 +10,9 @@ data class GameReplay(
     val safeBottomInset: Int,
     val inputs: List<ReplayInput>,
     val totalTicks: Int,
-    val score: Int
+    val score: Int,
+    val bestCombo: Int,
+    val caughtWhiteCount: Int,
+    val blockedHitCount: Int,
+    val powerUpsUsed: Int
 )
