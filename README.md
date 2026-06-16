@@ -42,8 +42,8 @@ Catching a red square or letting a white one slip past resets the streak to zero
 higher your score climbs, the harder it gets: squares fall faster, spawn more often, and
 your paddle gradually shrinks. How long can you survive?
 
-After each run you get a breakdown — survival time, best combo, whites caught, power-ups
-used, and hits absorbed by your shield.
+After each run you get a breakdown — survival time, whites caught, best combo, lives
+gained, and hits your shield absorbed.
 
 ## 📖 The Story Behind CatchRect
 
@@ -54,13 +54,11 @@ This Android version is a small tribute to the original — a reminder of where 
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="https://helltar.com/projects/catchrect-android/screenshots/pixel-9-gameplay-screenshot_20260311_133554.png" width="280" alt="gameplay screenshot"/>
+  <img src="https://helltar.com/projects/catchrect-android/screenshots/pixel-9-main-menu-screenshot_20260616.png" width="280" alt="main menu screenshot"/>
   &nbsp;&nbsp;
-  <img src="https://helltar.com/projects/catchrect-android/screenshots/pixel-9-leaderboard-screenshot_20260311_134035.png" width="280" alt="leaderboard screenshot"/>
+  <img src="https://helltar.com/projects/catchrect-android/screenshots/pixel-9-gameplay-screenshot_20260616.png" width="280" alt="gameplay screenshot"/>
 </p>
 
 ## ☕ Development Process
 
-**99.7%** of this code was written by AI.
-
-My grueling, monumental contribution — the remaining **0.3%** — consisted entirely of pressing `Y`, writing slightly passive-aggressive prompts, and occasionally nodding at the screen with an air of deep technical authority.
+**99.7%** of this code was written by AI. My **0.3%** was pressing `Y` and writing slightly passive-aggressive prompts.
