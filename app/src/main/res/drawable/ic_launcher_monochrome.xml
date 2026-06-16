@@ -5,19 +5,19 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Falling cubes -->
+    <!-- Falling cubes (rounded) -->
     <path
         android:fillColor="#000000"
-        android:pathData="M40,30h10v10h-10z" />
+        android:pathData="M42,30h6a2,2 0 0 1 2,2v6a2,2 0 0 1 -2,2h-6a2,2 0 0 1 -2,-2v-6a2,2 0 0 1 2,-2z" />
     <path
         android:fillColor="#000000"
-        android:pathData="M58,42h10v10h-10z" />
+        android:pathData="M60,42h6a2,2 0 0 1 2,2v6a2,2 0 0 1 -2,2h-6a2,2 0 0 1 -2,-2v-6a2,2 0 0 1 2,-2z" />
     <path
         android:fillColor="#000000"
-        android:pathData="M34,52h10v10h-10z" />
+        android:pathData="M36,52h6a2,2 0 0 1 2,2v6a2,2 0 0 1 -2,2h-6a2,2 0 0 1 -2,-2v-6a2,2 0 0 1 2,-2z" />
 
-    <!-- Platform -->
+    <!-- Paddle -->
     <path
         android:fillColor="#000000"
-        android:pathData="M36,72h36v5h-36z" />
+        android:pathData="M37,72h34a3,3 0 0 1 0,6h-34a3,3 0 0 1 0,-6z" />
 </vector>

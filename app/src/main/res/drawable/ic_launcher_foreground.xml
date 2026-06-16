@@ -5,23 +5,28 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Falling white cube -->
+    <!-- Soft accent glow under the paddle -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M40,30h10v10h-10z" />
+        android:fillColor="#332962FF"
+        android:pathData="M37,69h34a6,6 0 0 1 0,12h-34a6,6 0 0 1 0,-12z" />
+
+    <!-- Falling white cube (rounded, like the in-game cubes) -->
+    <path
+        android:fillColor="#ECF0F5"
+        android:pathData="M42,30h6a2,2 0 0 1 2,2v6a2,2 0 0 1 -2,2h-6a2,2 0 0 1 -2,-2v-6a2,2 0 0 1 2,-2z" />
 
     <!-- Falling red cube -->
     <path
         android:fillColor="#E53935"
-        android:pathData="M58,42h10v10h-10z" />
+        android:pathData="M60,42h6a2,2 0 0 1 2,2v6a2,2 0 0 1 -2,2h-6a2,2 0 0 1 -2,-2v-6a2,2 0 0 1 2,-2z" />
 
     <!-- Falling green cube -->
     <path
         android:fillColor="#43A047"
-        android:pathData="M34,52h10v10h-10z" />
+        android:pathData="M36,52h6a2,2 0 0 1 2,2v6a2,2 0 0 1 -2,2h-6a2,2 0 0 1 -2,-2v-6a2,2 0 0 1 2,-2z" />
 
-    <!-- Platform -->
+    <!-- Paddle: accent-blue rounded bar matching the menu accent -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M36,72h36v5h-36z" />
+        android:fillColor="#2962FF"
+        android:pathData="M37,72h34a3,3 0 0 1 0,6h-34a3,3 0 0 1 0,-6z" />
 </vector>
