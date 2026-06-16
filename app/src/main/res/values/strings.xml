@@ -43,4 +43,7 @@
     <string name="sound_off">Sound: OFF</string>
     <string name="pure_black_on">Pure Black: ON</string>
     <string name="pure_black_off">Pure Black: OFF</string>
+    <string name="menu_best_badge">BEST  %1$d</string>
+    <string name="setting_sound">Sound</string>
+    <string name="setting_pure_black">Pure Black</string>
 </resources>

@@ -11,7 +11,10 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
 import android.text.TextUtils
+import android.text.style.ForegroundColorSpan
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -49,6 +52,7 @@ class MainActivity : ComponentActivity() {
     private var isOledBackground = false
     private var isLeaderboardLoading = false
     private var isScoreSubmitting = false
+    private var bestScoreBadge: TextView? = null
 
     private val prefs by lazy { getSharedPreferences("settings", Context.MODE_PRIVATE) }
     private val displayTypeface: Typeface by lazy { Typeface.create("sans-serif-medium", Typeface.BOLD) }
@@ -134,6 +138,7 @@ class MainActivity : ComponentActivity() {
         gameView.pauseGame()
         gameView.visibility = View.GONE
         menuView.visibility = View.VISIBLE
+        refreshBestScoreBadge()
     }
 
     private fun startGame() {
@@ -342,7 +347,6 @@ class MainActivity : ComponentActivity() {
         val panelColor = Color.rgb(26, 31, 38)
         val rowColor = Color.rgb(35, 43, 54)
         val rowOutline = Color.rgb(56, 68, 84)
-        val subtitleColor = Color.argb(180, 255, 255, 255)
 
         val panelBackground = GradientDrawable().apply {
             setColor(panelColor)
@@ -395,33 +399,13 @@ class MainActivity : ComponentActivity() {
             )
         }
 
-        val titleView = TextView(this).apply {
-            text = getString(R.string.leaderboard_title)
-            setTextColor(Color.WHITE)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
-            typeface = displayTypeface
-            gravity = Gravity.CENTER
+        val subtitle = if (entries.isEmpty()) {
+            getString(R.string.leaderboard_empty_subtitle)
+        } else {
+            resources.getQuantityString(R.plurals.leaderboard_best_runs, entries.size, entries.size)
         }
 
-        val subtitleView = TextView(this).apply {
-            text = if (entries.isEmpty()) {
-                getString(R.string.leaderboard_empty_subtitle)
-            } else {
-                resources.getQuantityString(R.plurals.leaderboard_best_runs, entries.size, entries.size)
-            }
-            setTextColor(subtitleColor)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-            gravity = Gravity.CENTER
-            setPadding(0, dp(6), 0, 0)
-        }
-
-        val header = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(24), dp(24), dp(24), dp(18))
-            addView(titleView)
-            addView(subtitleView)
-        }
+        val header = createDialogHeader(getString(R.string.leaderboard_title), subtitle)
 
         val body = FrameLayout(this).apply {
             background = panelBackground
@@ -516,20 +500,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        val titleView = TextView(this).apply {
-            text = getString(R.string.about_title)
-            setTextColor(Color.WHITE)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
-            typeface = displayTypeface
-            gravity = Gravity.CENTER
-        }
-
-        val header = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_HORIZONTAL
-            setPadding(dp(24), dp(24), dp(24), dp(18))
-            addView(titleView)
-        }
+        val header = createDialogHeader(getString(R.string.about_title))
 
         val body = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -538,7 +509,7 @@ class MainActivity : ComponentActivity() {
             setPadding(dp(24), dp(24), dp(24), dp(24))
 
             addView(TextView(context).apply {
-                text = getString(R.string.app_name)
+                text = buildWordmark()
                 setTextColor(Color.WHITE)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
                 typeface = displayTypeface
@@ -768,49 +739,110 @@ class MainActivity : ComponentActivity() {
             gravity = Gravity.CENTER_HORIZONTAL
 
             addView(TextView(context).apply {
-                text = getString(R.string.app_name)
+                text = buildWordmark()
                 setTextColor(Color.WHITE)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, 46f)
                 typeface = displayTypeface
                 letterSpacing = 0.04f
                 gravity = Gravity.CENTER
                 setShadowLayer(dp(20).toFloat(), 0f, 0f, Color.rgb(41, 98, 255))
-                setPadding(0, dp(12), 0, dp(36))
+                // Bottom padding leaves room for the glow so it isn't clipped by the view bounds.
+                setPadding(0, dp(20), 0, dp(20))
             })
 
-            addView(createMenuButton(getString(R.string.play), accent = true) { startGame() })
+            // Accent bar echoing the paddle that catches the falling squares.
+            addView(View(context).apply {
+                background = GradientDrawable().apply {
+                    setColor(Color.rgb(41, 98, 255))
+                    cornerRadius = dp(3).toFloat()
+                }
+                layoutParams = LinearLayout.LayoutParams(dp(72), dp(6)).apply {
+                    topMargin = dp(6)
+                }
+            })
+
+            bestScoreBadge = TextView(context).apply {
+                setTextColor(Color.rgb(214, 168, 48))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 13f)
+                typeface = displayTypeface
+                letterSpacing = 0.08f
+                gravity = Gravity.CENTER
+                background = GradientDrawable().apply {
+                    setColor(Color.argb(28, 214, 168, 48))
+                    cornerRadius = dp(12).toFloat()
+                    setStroke(dp(1), Color.argb(120, 214, 168, 48))
+                }
+                setPadding(dp(16), dp(7), dp(16), dp(7))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = dp(18) }
+            }
+            addView(bestScoreBadge)
+
+            addView(createMenuButton(getString(R.string.play), accent = true) { startGame() }.apply {
+                setPadding(dp(24), dp(20), dp(24), dp(20))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
+                (layoutParams as LinearLayout.LayoutParams).topMargin = dp(34)
+            })
 
             addView(createMenuButton(getString(R.string.leaderboard_title)) { showLeaderboard() }.apply {
-                (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
+                (layoutParams as LinearLayout.LayoutParams).topMargin = dp(14)
             })
 
-            val soundButton = createMenuButton(soundLabel()) {}.apply {
-                (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
-                setOnClickListener {
-                    isSoundEnabled = !isSoundEnabled
-                    gameView.setSoundEnabled(isSoundEnabled)
-                    prefs.edit { putBoolean(PREF_SOUND_ENABLED, isSoundEnabled) }
-                    text = soundLabel()
+            addView(LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                layoutParams = LinearLayout.LayoutParams(
+                    dp(260),
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    topMargin = dp(14)
                 }
-            }
-            addView(soundButton)
 
-            val oledButton = createMenuButton(oledLabel()) {}.apply {
-                (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
-                setOnClickListener {
-                    isOledBackground = !isOledBackground
-                    gameView.setOledBackground(isOledBackground)
-                    prefs.edit { putBoolean(PREF_OLED_BACKGROUND, isOledBackground) }
-                    text = oledLabel()
-                    applyMenuBackground(menuView)
-                }
-            }
-            addView(oledButton)
+                addView(
+                    createToggleChip(getString(R.string.setting_sound), isSoundEnabled) { chip ->
+                        isSoundEnabled = !isSoundEnabled
+                        gameView.setSoundEnabled(isSoundEnabled)
+                        prefs.edit { putBoolean(PREF_SOUND_ENABLED, isSoundEnabled) }
+                        styleToggleChip(chip, isSoundEnabled)
+                    },
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                )
 
-            addView(createMenuButton(getString(R.string.about)) { showAboutDialog() }.apply {
-                (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
+                addView(
+                    createToggleChip(getString(R.string.setting_pure_black), isOledBackground) { chip ->
+                        isOledBackground = !isOledBackground
+                        gameView.setOledBackground(isOledBackground)
+                        prefs.edit { putBoolean(PREF_OLED_BACKGROUND, isOledBackground) }
+                        styleToggleChip(chip, isOledBackground)
+                        applyMenuBackground(menuView)
+                    },
+                    LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                        marginStart = dp(12)
+                    }
+                )
+            })
+
+            addView(TextView(context).apply {
+                text = getString(R.string.about)
+                setTextColor(Color.argb(150, 255, 255, 255))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+                typeface = displayTypeface
+                letterSpacing = 0.03f
+                gravity = Gravity.CENTER
+                isClickable = true
+                isFocusable = true
+                setPadding(dp(20), dp(14), dp(20), dp(14))
+                setOnClickListener { showAboutDialog() }
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = dp(18) }
             })
         }
+
+        refreshBestScoreBadge()
 
         val scrollView = ScrollView(this).apply {
             isFillViewport = true
@@ -869,6 +901,108 @@ class MainActivity : ComponentActivity() {
                     gravity = Gravity.CENTER_HORIZONTAL
                 }
             setOnClickListener { onClick() }
+        }
+    }
+
+    private fun buildWordmark(): CharSequence {
+        val name = getString(R.string.app_name)
+        val splitAt = name.indexOf("Rect").let { if (it >= 0) it else name.length }
+        return SpannableString(name).apply {
+            setSpan(
+                ForegroundColorSpan(Color.rgb(120, 160, 255)),
+                splitAt,
+                name.length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+    }
+
+    private fun refreshBestScoreBadge() {
+        val badge = bestScoreBadge ?: return
+        val best = prefs.getInt(PREF_BEST_SCORE, 0)
+        if (best > 0) {
+            badge.text = getString(R.string.menu_best_badge, best)
+            badge.visibility = View.VISIBLE
+        } else {
+            badge.visibility = View.GONE
+        }
+    }
+
+    private fun createToggleChip(
+        feature: String,
+        isActive: Boolean,
+        onToggle: (TextView) -> Unit
+    ): TextView {
+        val chip = TextView(this).apply {
+            text = feature
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 15f)
+            typeface = displayTypeface
+            letterSpacing = 0.02f
+            gravity = Gravity.CENTER
+            maxLines = 1
+            isClickable = true
+            isFocusable = true
+            setPadding(dp(12), dp(13), dp(12), dp(13))
+        }
+        styleToggleChip(chip, isActive)
+        chip.setOnClickListener { onToggle(chip) }
+        return chip
+    }
+
+    private fun styleToggleChip(chip: TextView, isActive: Boolean) {
+        val shape = GradientDrawable().apply {
+            cornerRadius = dp(14).toFloat()
+            if (isActive) {
+                setColor(Color.rgb(28, 48, 92))
+                setStroke(dp(2), Color.rgb(41, 98, 255))
+            } else {
+                setColor(Color.rgb(40, 50, 65))
+                setStroke(dp(2), Color.rgb(56, 68, 84))
+            }
+        }
+        chip.background = RippleDrawable(
+            ColorStateList.valueOf(Color.rgb(70, 85, 110)),
+            shape,
+            null
+        )
+        chip.setTextColor(if (isActive) Color.WHITE else Color.argb(150, 255, 255, 255))
+    }
+
+    private fun createDialogHeader(title: CharSequence, subtitle: CharSequence? = null): LinearLayout {
+        val titleView = TextView(this).apply {
+            text = title
+            setTextColor(Color.WHITE)
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 24f)
+            typeface = displayTypeface
+            gravity = Gravity.CENTER
+        }
+
+        // Same paddle accent bar as the main menu, tying the dialogs to it.
+        val accentBar = View(this).apply {
+            background = GradientDrawable().apply {
+                setColor(Color.rgb(41, 98, 255))
+                cornerRadius = dp(3).toFloat()
+            }
+            layoutParams = LinearLayout.LayoutParams(dp(56), dp(5)).apply {
+                topMargin = dp(12)
+            }
+        }
+
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
+            setPadding(dp(24), dp(24), dp(24), dp(18))
+            addView(titleView)
+            addView(accentBar)
+            subtitle?.let {
+                addView(TextView(this@MainActivity).apply {
+                    text = it
+                    setTextColor(Color.argb(180, 255, 255, 255))
+                    setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+                    gravity = Gravity.CENTER
+                    setPadding(0, dp(12), 0, 0)
+                })
+            }
         }
     }
 

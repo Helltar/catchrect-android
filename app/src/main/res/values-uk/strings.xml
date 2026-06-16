@@ -45,4 +45,7 @@
     <string name="sound_off">Звук: ВИКЛ</string>
     <string name="pure_black_on">Чорний: ВКЛ</string>
     <string name="pure_black_off">Чорний: ВИКЛ</string>
+    <string name="menu_best_badge">РЕКОРД  %1$d</string>
+    <string name="setting_sound">Звук</string>
+    <string name="setting_pure_black">Чорний фон</string>
 </resources>
