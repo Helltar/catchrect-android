@@ -352,10 +352,13 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
 
     private fun spawnCube() {
         val redBonus = ((score / 50) * 0.01f).coerceAtMost(0.10f)
-        val whiteChance = 0.69f - redBonus
+        // The 0.015 trimmed from green (extra-life) cubes is added to white so the
+        // green threshold stays put: shield/slow/platform-slow/invert spawn rates are
+        // unchanged, only extra lives get rarer (keeps runs from dragging on).
+        val whiteChance = 0.705f - redBonus
         val redChance = 0.12f + redBonus * 0.6f
         val fastRedChance = 0.07f + redBonus * 0.4f
-        val greenChance = 0.03f
+        val greenChance = 0.015f
         val shieldChance = 0.025f
         val chance = random.nextFloat()
         val type = when {
