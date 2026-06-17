@@ -104,6 +104,9 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
     var platformBottom: Float = 0f; private set
 
     private var spawnAccumulatorSeconds = 0f
+    // The integer-truncated platform X the catch zone is built from this tick — the
+    // exact value recorded into the replay and re-simulated by the server.
+    private var simPlatformX = 0f
     private var random = Random(initialSeed)
 
     var seed: Long = initialSeed
@@ -160,11 +163,16 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         if (viewportWidth <= 0 || viewportHeight <= 0 || isGameOver) return
 
         val dt = CatchRectGameConfig.FIXED_DT
+        // The replay only records the integer-truncated paddle X, and the server
+        // re-simulates catch detection from that integer. So the engine must catch
+        // with the *same* truncated value it records — never the full-precision
+        // platformX — or honest replays diverge by sub-pixel boundary flips.
         val roundedX = platformX.toInt().toFloat()
         if (roundedX != lastRecordedX) {
             replayInputs += ReplayInput(tickCount, roundedX)
             lastRecordedX = roundedX
         }
+        simPlatformX = roundedX
         tickCount++
         clampPlatform()
 
@@ -322,6 +330,7 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         controlInvertTicksRemaining = 0
         isGameOver = false
         spawnAccumulatorSeconds = 0f
+        simPlatformX = 0f
         reseed()
         centerPlatform()
     }
@@ -331,9 +340,13 @@ class CatchRectGameEngine(private val config: CatchRectGameConfig, initialSeed: 
         val platformHeight = config.platformHeightPx(viewportWidth)
         val platformY =
             viewportHeight - safeBottomInset - platformHeight - config.platformBottomMarginPx(viewportWidth)
-        platformLeft = platformX
+        // Mirror the server's ReplayVerifier exactly: coerce the recorded integer X
+        // into the same bounds, rather than using the full-precision platformX.
+        val maxX = (viewportWidth - platformWidth).coerceAtLeast(0f)
+        val x = simPlatformX.coerceIn(0f, maxX)
+        platformLeft = x
         platformTop = platformY
-        platformRight = platformX + platformWidth
+        platformRight = x + platformWidth
         platformBottom = platformY + platformHeight
     }
 

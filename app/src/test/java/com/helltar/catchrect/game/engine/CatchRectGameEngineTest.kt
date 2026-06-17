@@ -126,6 +126,36 @@ class CatchRectGameEngineTest {
         assertTrue("inversion should expire on its own", sawExpiry)
     }
 
+    /**
+     * The replay records only the integer-truncated paddle X, and the server
+     * re-simulates catch detection from that integer. So the catch zone must be
+     * built from the recorded integer X — not the full-precision platformX — or a
+     * paddle resting at a fractional pixel makes the server diverge by boundary
+     * flips and rejects honest replays (the "expected 1401, got 1404" failure).
+     */
+    @Test
+    fun `catch zone is built from the recorded integer paddle X, not the float position`() {
+        val engine = stationaryEngine(11L) // platformX settles at the integer 360
+        // Nudge the paddle to a deliberately fractional position (360.7).
+        engine.movePlatformBy(0.7f)
+        engine.update()
+
+        val replay = engine.getReplayData()
+        val recordedX = replay.inputs.last().platformX
+        assertEquals(
+            "catch zone left edge must equal the recorded integer X",
+            recordedX,
+            engine.platformLeft,
+            0f
+        )
+        assertEquals(
+            "recorded X must be the truncated integer, not the fractional position",
+            recordedX,
+            kotlin.math.floor(recordedX),
+            0f
+        )
+    }
+
     @Test
     fun `fresh engine and restart both start from a clean state`() {
         val engine = stationaryEngine(11L)
