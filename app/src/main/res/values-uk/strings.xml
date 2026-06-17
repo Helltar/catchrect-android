@@ -5,8 +5,6 @@
     <string name="submit">Надіслати</string>
     <string name="cancel">Скасувати</string>
     <string name="name_length_error">Імʼя має містити від 1 до 32 символів</string>
-    <string name="submission_failed_title">Надсилання не вдалося</string>
-    <string name="submission_failed_message">Не вдалося надіслати ваш рекорд. Спробуйте пізніше.</string>
     <string name="submission_saved_title">Рекорд збережено</string>
     <string name="submission_saved_message">Не вдалося звʼязатися із сервером. Ваш рекорд збережено — надішліть його пізніше з меню.</string>
     <string name="submit_pending_button">Надіслати збережений рекорд (%1$d)</string>

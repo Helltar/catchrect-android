@@ -254,14 +254,6 @@ class MainActivity : ComponentActivity() {
         input.selectAll()
     }
 
-    private fun showSubmissionFailedDialog() {
-        showGameMessageDialog(
-            title = getString(R.string.submission_failed_title),
-            message = getString(R.string.submission_failed_message),
-            accentColor = Color.rgb(198, 76, 72)
-        )
-    }
-
     private fun showSubmissionSavedDialog() {
         showGameMessageDialog(
             title = getString(R.string.submission_saved_title),
@@ -286,8 +278,8 @@ class MainActivity : ComponentActivity() {
     /**
      * Submits [request] and, on anything other than a clean accept, keeps the run
      * on disk so it can be retried later from the menu instead of being lost when
-     * the player leaves the game. A deterministic 4xx rejection is not retryable,
-     * so it is never saved (and a doomed retry of it is dropped).
+     * the player leaves the game. Any failure is kept — including a 4xx rejection:
+     * a retry only helps if it was transient, but the score is never silently lost.
      */
     private fun runSubmission(request: SubmitScoreRequest, fromMenu: Boolean) {
         if (isScoreSubmitting) return
@@ -300,40 +292,29 @@ class MainActivity : ComponentActivity() {
             try {
                 val status = LeaderboardApi.instance.submitScore(request)
 
-                when {
-                    status == HttpStatusCode.OK -> {
-                        prefs.edit {
-                            putInt(PREF_BEST_SCORE, max(prefs.getInt(PREF_BEST_SCORE, 0), request.score))
-                        }
-                        PendingSubmissionStore.clearIfNotBetterThan(this@MainActivity, request.score)
+                if (status == HttpStatusCode.OK) {
+                    prefs.edit {
+                        putInt(PREF_BEST_SCORE, max(prefs.getInt(PREF_BEST_SCORE, 0), request.score))
+                    }
+                    PendingSubmissionStore.clearIfNotBetterThan(this@MainActivity, request.score)
 
-                        if (loadingDialog.isShowing) loadingDialog.dismiss()
+                    if (loadingDialog.isShowing) loadingDialog.dismiss()
 
-                        showGameMessageDialog(
-                            title = getString(R.string.score_submitted_title),
-                            message = getString(R.string.score_submitted_message),
-                            accentColor = Color.rgb(67, 160, 71),
-                            onDismiss = {
-                                if (!fromMenu) {
-                                    gameView.setSubmitButtonVisible(false)
-                                    gameView.setLeaderboardButtonVisible(true)
-                                }
+                    showGameMessageDialog(
+                        title = getString(R.string.score_submitted_title),
+                        message = getString(R.string.score_submitted_message),
+                        accentColor = Color.rgb(67, 160, 71),
+                        onDismiss = {
+                            if (!fromMenu) {
+                                gameView.setSubmitButtonVisible(false)
+                                gameView.setLeaderboardButtonVisible(true)
                             }
-                        )
-                    }
-
-                    status.value in 400..499 -> {
-                        // Verification/validation rejection — retrying never helps.
-                        if (fromMenu) PendingSubmissionStore.clear(this@MainActivity)
-                        if (loadingDialog.isShowing) loadingDialog.dismiss()
-                        showSubmissionFailedDialog()
-                    }
-
-                    else -> {
-                        PendingSubmissionStore.saveIfBetter(this@MainActivity, request)
-                        if (loadingDialog.isShowing) loadingDialog.dismiss()
-                        showSubmissionSavedDialog()
-                    }
+                        }
+                    )
+                } else {
+                    PendingSubmissionStore.saveIfBetter(this@MainActivity, request)
+                    if (loadingDialog.isShowing) loadingDialog.dismiss()
+                    showSubmissionSavedDialog()
                 }
             } catch (e: Exception) {
                 PendingSubmissionStore.saveIfBetter(this@MainActivity, request)
