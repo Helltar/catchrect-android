@@ -22,12 +22,15 @@ import kotlinx.serialization.json.Json
 
 class LeaderboardApi(private val client: HttpClient, private val baseUrl: String) {
 
-    suspend fun submitScore(playerName: String, playerId: String, replay: GameReplay): HttpStatusCode {
+    suspend fun submitScore(playerName: String, playerId: String, replay: GameReplay): HttpStatusCode =
+        submitScore(replay.toSubmitScoreRequest(playerName, playerId))
+
+    suspend fun submitScore(request: SubmitScoreRequest): HttpStatusCode {
         val response =
             client.post("$baseUrl/submit") {
                 contentType(ContentType.Application.Json)
                 compress("gzip")
-                setBody(replay.toSubmitScoreRequest(playerName, playerId))
+                setBody(request)
             }
 
         return response.status

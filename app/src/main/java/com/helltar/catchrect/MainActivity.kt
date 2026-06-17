@@ -37,7 +37,9 @@ import com.helltar.catchrect.game.engine.GameReplay
 import com.helltar.catchrect.game.view.CatchRectSurfaceView
 import com.helltar.catchrect.network.LeaderboardApi
 import com.helltar.catchrect.network.LeaderboardEntry
-import io.ktor.client.plugins.HttpRequestTimeoutException
+import com.helltar.catchrect.network.PendingSubmissionStore
+import com.helltar.catchrect.network.SubmitScoreRequest
+import com.helltar.catchrect.network.toSubmitScoreRequest
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -53,6 +55,7 @@ class MainActivity : ComponentActivity() {
     private var isLeaderboardLoading = false
     private var isScoreSubmitting = false
     private var bestScoreBadge: TextView? = null
+    private var pendingSubmitButton: TextView? = null
 
     private val prefs by lazy { getSharedPreferences("settings", Context.MODE_PRIVATE) }
     private val displayTypeface: Typeface by lazy { Typeface.create("sans-serif-medium", Typeface.BOLD) }
@@ -125,6 +128,8 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         if (isGameScreenVisible) {
             gameView.resumeGame()
+        } else {
+            refreshPendingSubmissionButton()
         }
     }
 
@@ -139,6 +144,7 @@ class MainActivity : ComponentActivity() {
         gameView.visibility = View.GONE
         menuView.visibility = View.VISIBLE
         refreshBestScoreBadge()
+        refreshPendingSubmissionButton()
     }
 
     private fun startGame() {
@@ -256,7 +262,34 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun showSubmissionSavedDialog() {
+        showGameMessageDialog(
+            title = getString(R.string.submission_saved_title),
+            message = getString(R.string.submission_saved_message),
+            accentColor = Color.rgb(214, 168, 48)
+        )
+    }
+
     private fun submitScore(playerName: String, replay: GameReplay) {
+        runSubmission(replay.toSubmitScoreRequest(playerName, getOrCreateLocalPlayerId()), fromMenu = false)
+    }
+
+    private fun retryPendingSubmission() {
+        val request = PendingSubmissionStore.load(this)
+        if (request == null) {
+            refreshPendingSubmissionButton()
+            return
+        }
+        runSubmission(request, fromMenu = true)
+    }
+
+    /**
+     * Submits [request] and, on anything other than a clean accept, keeps the run
+     * on disk so it can be retried later from the menu instead of being lost when
+     * the player leaves the game. A deterministic 4xx rejection is not retryable,
+     * so it is never saved (and a doomed retry of it is dropped).
+     */
+    private fun runSubmission(request: SubmitScoreRequest, fromMenu: Boolean) {
         if (isScoreSubmitting) return
 
         isScoreSubmitting = true
@@ -265,46 +298,51 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch {
             try {
-                val playerId = getOrCreateLocalPlayerId()
-                val status = LeaderboardApi.instance.submitScore(playerName, playerId, replay)
+                val status = LeaderboardApi.instance.submitScore(request)
 
-                if (status == HttpStatusCode.OK) {
-                    prefs.edit { putInt(PREF_BEST_SCORE, replay.score) }
-
-                    if (loadingDialog.isShowing) {
-                        loadingDialog.dismiss()
-                    }
-
-                    showGameMessageDialog(
-                        title = getString(R.string.score_submitted_title),
-                        message = getString(R.string.score_submitted_message),
-                        accentColor = Color.rgb(67, 160, 71),
-                        onDismiss = {
-                            gameView.setSubmitButtonVisible(false)
-                            gameView.setLeaderboardButtonVisible(true)
+                when {
+                    status == HttpStatusCode.OK -> {
+                        prefs.edit {
+                            putInt(PREF_BEST_SCORE, max(prefs.getInt(PREF_BEST_SCORE, 0), request.score))
                         }
-                    )
-                } else {
-                    if (loadingDialog.isShowing) {
-                        loadingDialog.dismiss()
+                        PendingSubmissionStore.clearIfNotBetterThan(this@MainActivity, request.score)
+
+                        if (loadingDialog.isShowing) loadingDialog.dismiss()
+
+                        showGameMessageDialog(
+                            title = getString(R.string.score_submitted_title),
+                            message = getString(R.string.score_submitted_message),
+                            accentColor = Color.rgb(67, 160, 71),
+                            onDismiss = {
+                                if (!fromMenu) {
+                                    gameView.setSubmitButtonVisible(false)
+                                    gameView.setLeaderboardButtonVisible(true)
+                                }
+                            }
+                        )
                     }
-                    showSubmissionFailedDialog()
+
+                    status.value in 400..499 -> {
+                        // Verification/validation rejection — retrying never helps.
+                        if (fromMenu) PendingSubmissionStore.clear(this@MainActivity)
+                        if (loadingDialog.isShowing) loadingDialog.dismiss()
+                        showSubmissionFailedDialog()
+                    }
+
+                    else -> {
+                        PendingSubmissionStore.saveIfBetter(this@MainActivity, request)
+                        if (loadingDialog.isShowing) loadingDialog.dismiss()
+                        showSubmissionSavedDialog()
+                    }
                 }
-            } catch (_: HttpRequestTimeoutException) {
-                if (loadingDialog.isShowing) {
-                    loadingDialog.dismiss()
-                }
-                showSubmissionFailedDialog()
             } catch (e: Exception) {
-                if (loadingDialog.isShowing) {
-                    loadingDialog.dismiss()
-                }
-                showSubmissionFailedDialog()
+                PendingSubmissionStore.saveIfBetter(this@MainActivity, request)
+                if (loadingDialog.isShowing) loadingDialog.dismiss()
+                showSubmissionSavedDialog()
             } finally {
-                if (loadingDialog.isShowing) {
-                    loadingDialog.dismiss()
-                }
+                if (loadingDialog.isShowing) loadingDialog.dismiss()
                 isScoreSubmitting = false
+                refreshPendingSubmissionButton()
             }
         }
     }
@@ -790,6 +828,14 @@ class MainActivity : ComponentActivity() {
                 (layoutParams as LinearLayout.LayoutParams).topMargin = dp(14)
             })
 
+            pendingSubmitButton = createMenuButton(getString(R.string.submit_pending_button, 0)) {
+                retryPendingSubmission()
+            }.apply {
+                (layoutParams as LinearLayout.LayoutParams).topMargin = dp(14)
+                visibility = View.GONE
+            }
+            addView(pendingSubmitButton)
+
             addView(LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
                 layoutParams = LinearLayout.LayoutParams(
@@ -843,6 +889,7 @@ class MainActivity : ComponentActivity() {
         }
 
         refreshBestScoreBadge()
+        refreshPendingSubmissionButton()
 
         val scrollView = ScrollView(this).apply {
             isFillViewport = true
@@ -925,6 +972,17 @@ class MainActivity : ComponentActivity() {
             badge.visibility = View.VISIBLE
         } else {
             badge.visibility = View.GONE
+        }
+    }
+
+    private fun refreshPendingSubmissionButton() {
+        val button = pendingSubmitButton ?: return
+        val pending = PendingSubmissionStore.load(this)
+        if (pending != null) {
+            button.text = getString(R.string.submit_pending_button, pending.score)
+            button.visibility = View.VISIBLE
+        } else {
+            button.visibility = View.GONE
         }
     }
 
