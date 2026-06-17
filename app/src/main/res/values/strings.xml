@@ -7,7 +7,7 @@
     <string name="name_length_error">Name must be 1–32 characters</string>
     <string name="submission_saved_title">Score Saved</string>
     <string name="submission_saved_message">Couldn\'t reach the server. Your score is saved — submit it later from the menu.</string>
-    <string name="submit_pending_button">Submit Saved Score (%1$d)</string>
+    <string name="submit_pending_button">Submit Score (%1$d)</string>
     <string name="submitting_score">Submitting score…</string>
     <string name="score_submitted_title">Score Submitted</string>
     <string name="score_submitted_message">Your record was submitted successfully.</string>

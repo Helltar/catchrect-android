@@ -7,7 +7,7 @@
     <string name="name_length_error">Імʼя має містити від 1 до 32 символів</string>
     <string name="submission_saved_title">Рекорд збережено</string>
     <string name="submission_saved_message">Не вдалося звʼязатися із сервером. Ваш рекорд збережено — надішліть його пізніше з меню.</string>
-    <string name="submit_pending_button">Надіслати збережений рекорд (%1$d)</string>
+    <string name="submit_pending_button">Надіслати рекорд (%1$d)</string>
     <string name="submitting_score">Надсилаємо рекорд…</string>
     <string name="score_submitted_title">Рекорд надіслано</string>
     <string name="score_submitted_message">Ваш рекорд успішно надіслано.</string>
